@@ -1,0 +1,176 @@
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local plr = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+local mouse = plr:GetMouse()
+
+-- Variables
+local weaponModsEnabled = false
+local aimbotEnabled = false
+local espEnabled = false
+local fovCircleVisible = false
+local aimFov = 100
+local aimPrediction = 0.065
+local targetPlayer = nil
+
+-- ESP Table
+local ESPObjects = {}
+
+-- Window
+local Window = Rayfield:CreateWindow({
+	Name = "▶ Gun Grounds FFA ◀",
+	LoadingTitle = "Loading...",
+	LoadingSubtitle = "Please wait 🔥",
+	SaveConfig = {
+		Enabled = true,
+		FolderName = "GunGroundsFFA",
+		FileName = "byAgreed"
+	},
+})
+
+local MainTab = Window:CreateTab("Weapon Mods 🔫")
+local AimbotTab = Window:CreateTab("Aimbot ☠️")
+local ESPTab = Window:CreateTab("ESP 👀")
+
+-- ===================
+-- Weapon Mods
+-- ===================
+MainTab:CreateToggle({
+	Name = "Enable Weapon Mods",
+	CurrentValue = false,
+	Flag = "WeaponModsEnabled",
+	Callback = function(Value)
+		weaponModsEnabled = Value
+		Rayfield:Notify({
+			Title = "Weapon Mods",
+			Content = Value and "Enabled!" or "Disabled!",
+			Duration = 1,
+			Image = 4483362458,
+		})
+	end
+})
+
+-- ===================
+-- Aimbot
+-- ===================
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 2
+fovCircle.NumSides = 12
+fovCircle.Radius = aimFov
+fovCircle.Filled = false
+fovCircle.Color = Color3.fromRGB(255,0,0)
+fovCircle.Visible = fovCircleVisible
+
+local function isWallBetween(targetCharacter)
+	if not targetCharacter:FindFirstChild("Head") then return true end
+	local origin = camera.CFrame.Position
+	local direction = (targetCharacter.Head.Position - origin).Unit * (targetCharacter.Head.Position - origin).Magnitude
+	local rayParams = RaycastParams.new()
+	rayParams.FilterDescendantsInstances = {plr.Character, targetCharacter}
+	rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+	local rayResult = Workspace:Raycast(origin, direction, rayParams)
+	return rayResult and rayResult.Instance ~= nil
+end
+
+local function getNearestPlayer()
+	local nearest = nil
+	local shortestDistance = math.huge
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= plr and player.Character and player.Character:FindFirstChild("Head") then
+			local headPos = camera:WorldToViewportPoint(player.Character.Head.Position)
+			local mousePos = Vector2.new(mouse.X, mouse.Y)
+			local distance = (Vector2.new(headPos.X, headPos.Y) - mousePos).Magnitude
+			if distance < shortestDistance and headPos.Z > 0 then
+				if not isWallBetween(player.Character) then
+					shortestDistance = distance
+					nearest = player
+				end
+			end
+		end
+	end
+	return nearest
+end
+
+local function predictPosition(player)
+	if player and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("HumanoidRootPart") then
+		local head = player.Character.Head
+		local hrp = player.Character.HumanoidRootPart
+		return head.Position + (hrp.Velocity * aimPrediction)
+	end
+	return nil
+end
+
+local function aimAtPlayer(player)
+	local predictedPos = predictPosition(player)
+	if predictedPos then
+		camera.CFrame = CFrame.new(camera.CFrame.Position, predictedPos)
+	end
+end
+
+RunService.RenderStepped:Connect(function()
+	if aimbotEnabled then
+		targetPlayer = getNearestPlayer()
+		if targetPlayer then
+			aimAtPlayer(targetPlayer)
+		end
+	end
+
+	if espEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= plr and p.Character and p.Character:FindFirstChild("Head") then
+				if not ESPObjects[p] then
+					ESPObjects[p] = Drawing.new("Square")
+					ESPObjects[p].Thickness = 1
+					ESPObjects[p].Color = Color3.new(1,0,0)
+					ESPObjects[p].Filled = false
+				end
+				local headPos, onScreen = camera:WorldToViewportPoint(p.Character.Head.Position)
+				if onScreen then
+					ESPObjects[p].Position = Vector2.new(headPos.X-5, headPos.Y-5)
+					ESPObjects[p].Size = Vector2.new(10,10)
+					ESPObjects[p].Visible = true
+				else
+					ESPObjects[p].Visible = false
+				end
+			end
+		end
+	end
+end)
+
+-- Aimbot Toggle
+AimbotTab:CreateToggle({
+	Name = "Enable Aimbot",
+	CurrentValue = false,
+	Flag = "Aimbot",
+	Callback = function(Value)
+		aimbotEnabled = Value
+		fovCircle.Visible = Value
+	end
+})
+
+AimbotTab:CreateSlider({
+	Name = "Aimbot FOV",
+	Range = {0,360},
+	Increment = 1,
+	CurrentValue = aimFov,
+	Flag = "AimbotFOV",
+	Callback = function(Value)
+		aimFov = Value
+		fovCircle.Radius = Value
+	end
+})
+
+-- ESP Toggle
+ESPTab:CreateToggle({
+	Name = "Enable ESP",
+	CurrentValue = false,
+	Flag = "ESP",
+	Callback = function(Value)
+		espEnabled = Value
+	end
+})
