@@ -1,0 +1,14 @@
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Window
+local Window = Rayfield:CreateWindow({
+	Name = "▶ GUL ◀",
+	LoadingTitle = "Loading...",
+	LoadingSubtitle = "Please wait ",
+	SaveConfig = {
+		Enabled = true,
+		FolderName = "empty",
+		FileName = "byAgreed"
+	},
+})
