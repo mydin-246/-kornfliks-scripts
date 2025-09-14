@@ -1,0 +1,258 @@
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local plr = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+local mouse = plr:GetMouse()
+local UserInputService = game:GetService("UserInputService")
+
+-- Variables
+local weaponModsEnabled = false
+local aimbotEnabled = false
+local espEnabled = false
+local fovCircleVisible = false
+local aimFov = 100
+local aimPrediction = 0.065
+local targetPlayer = nil
+local flying = false
+local flySpeed = 50
+
+local ESPObjects = {}
+
+-- Window
+local Window = Rayfield:CreateWindow({
+	Name = "▶ Quadral Full Suite ◀",
+	LoadingTitle = "Loading...",
+	LoadingSubtitle = "by Agreed 🥵",
+	ConfigurationSaving = {Enabled = true, FolderName = "Quadral", FileName = "Config"}
+})
+
+local MainTab = Window:CreateTab("Gun Mods 🔫")
+local AimbotTab = Window:CreateTab("Aimbot ☠️")
+local ViewModelTab = Window:CreateTab("Viewmodel 👀")
+local ESPTab = Window:CreateTab("ESP 👀")
+local FlyTab = Window:CreateTab("Fly ✈️")
+
+-- ===================
+-- Gun Mods
+-- ===================
+MainTab:CreateToggle({
+	Name = "Enable Weapon Mods",
+	CurrentValue = false,
+	Flag = "WeaponModsEnabled",
+	Callback = function(Value)
+		weaponModsEnabled = Value
+	end
+})
+
+-- ===================
+-- Viewmodel
+-- ===================
+local viewModelOffset = Vector3.new(0.1, -1.7, 0)
+local viewmodelEnabled = false
+
+local viewmodeleditor = ViewModelTab:CreateToggle({
+	Name = "Viewmodel Editor",
+	CurrentValue = false,
+	Flag = "ViewmodelEditor",
+	Callback = function(Value)
+		viewmodelEnabled = Value
+	end
+})
+
+ViewModelTab:CreateSlider({
+	Name = "X Offset",
+	Range = {-10,10},
+	Increment = 0.1,
+	CurrentValue = 0,
+	Flag = "ViewX",
+	Callback = function(Value)
+		viewModelOffset = Vector3.new(Value, viewModelOffset.Y, viewModelOffset.Z)
+	end
+})
+
+ViewModelTab:CreateSlider({
+	Name = "Y Offset",
+	Range = {-10,10},
+	Increment = 0.1,
+	CurrentValue = -1.7,
+	Flag = "ViewY",
+	Callback = function(Value)
+		viewModelOffset = Vector3.new(viewModelOffset.X, Value, viewModelOffset.Z)
+	end
+})
+
+ViewModelTab:CreateSlider({
+	Name = "Z Offset",
+	Range = {-10,10},
+	Increment = 0.1,
+	CurrentValue = 0,
+	Flag = "ViewZ",
+	Callback = function(Value)
+		viewModelOffset = Vector3.new(viewModelOffset.X, viewModelOffset.Y, Value)
+	end
+})
+
+-- ===================
+-- Aimbot
+-- ===================
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 2
+fovCircle.NumSides = 12
+fovCircle.Radius = aimFov
+fovCircle.Filled = false
+fovCircle.Color = Color3.fromRGB(255,0,0)
+fovCircle.Visible = fovCircleVisible
+
+local function isWallBetween(targetCharacter)
+	if not targetCharacter:FindFirstChild("Head") then return true end
+	local origin = camera.CFrame.Position
+	local direction = (targetCharacter.Head.Position - origin).Unit * (targetCharacter.Head.Position - origin).Magnitude
+	local rayParams = RaycastParams.new()
+	rayParams.FilterDescendantsInstances = {plr.Character, targetCharacter}
+	rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+	local rayResult = Workspace:Raycast(origin, direction, rayParams)
+	return rayResult and rayResult.Instance ~= nil
+end
+
+local function getNearestPlayer()
+	local nearest = nil
+	local shortestDistance = aimFov
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= plr and player.Character and player.Character:FindFirstChild("Head") then
+			local headPos = camera:WorldToViewportPoint(player.Character.Head.Position)
+			local mousePos = Vector2.new(mouse.X, mouse.Y)
+			local distance = (Vector2.new(headPos.X, headPos.Y) - mousePos).Magnitude
+			if distance < shortestDistance then
+				if not isWallBetween(player.Character) then
+					shortestDistance = distance
+					nearest = player
+				end
+			end
+		end
+	end
+	return nearest
+end
+
+local function predictPosition(player)
+	if player and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("HumanoidRootPart") then
+		local head = player.Character.Head
+		local hrp = player.Character.HumanoidRootPart
+		return head.Position + (hrp.Velocity * aimPrediction)
+	end
+	return nil
+end
+
+local function aimAtPlayer(player)
+	local predictedPos = predictPosition(player)
+	if predictedPos then
+		camera.CFrame = CFrame.new(camera.CFrame.Position, predictedPos)
+	end
+end
+
+AimbotTab:CreateToggle({
+	Name = "Enable Aimbot",
+	CurrentValue = false,
+	Flag = "AimbotToggle",
+	Callback = function(Value)
+		aimbotEnabled = Value
+		fovCircle.Visible = Value
+	end
+})
+
+AimbotTab:CreateSlider({
+	Name = "Aimbot FOV",
+	Range = {0,360},
+	Increment = 1,
+	CurrentValue = aimFov,
+	Flag = "AimbotFOV",
+	Callback = function(Value)
+		aimFov = Value
+		fovCircle.Radius = Value
+	end
+})
+
+-- ===================
+-- ESP
+-- ===================
+ESPTab:CreateToggle({
+	Name = "Enable ESP",
+	CurrentValue = false,
+	Flag = "ESPEnabled",
+	Callback = function(Value)
+		espEnabled = Value
+	end
+})
+
+-- ===================
+-- Fly
+-- ===================
+FlyTab:CreateToggle({
+	Name = "Fly Mode",
+	CurrentValue = false,
+	Flag = "FlyMode",
+	Callback = function(Value)
+		flying = Value
+	end
+})
+
+-- Fly Controls
+UserInputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.E then
+		flying = not flying
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == Enum.KeyCode.U then
+		flying = false
+	end
+end)
+
+-- ===================
+-- Main Loop
+-- ===================
+RunService.RenderStepped:Connect(function()
+	-- Aimbot
+	if aimbotEnabled then
+		local target = getNearestPlayer()
+		if target then aimAtPlayer(target) end
+	end
+
+	-- ESP
+	if espEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= plr and p.Character and p.Character:FindFirstChild("Head") then
+				if not ESPObjects[p] then
+					ESPObjects[p] = Drawing.new("Square")
+					ESPObjects[p].Thickness = 1
+					ESPObjects[p].Color = Color3.new(1,0,0)
+					ESPObjects[p].Filled = false
+				end
+				local headPos, onScreen = camera:WorldToViewportPoint(p.Character.Head.Position)
+				if onScreen then
+					ESPObjects[p].Position = Vector2.new(headPos.X-5, headPos.Y-5)
+					ESPObjects[p].Size = Vector2.new(10,10)
+					ESPObjects[p].Visible = true
+				else
+					ESPObjects[p].Visible = false
+				end
+			end
+		end
+	end
+
+	-- Fly
+	if flying and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = plr.Character.HumanoidRootPart
+		local moveDirection = Vector3.new(
+			(UserInputService:IsKeyDown(Enum.KeyCode.D) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.A) and -1 or 0)),
+			(UserInputService:IsKeyDown(Enum.KeyCode.Space) and 1 or (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) and -1 or 0)),
+			(UserInputService:IsKeyDown(Enum.KeyCode.W) and -1 or (UserInputService:IsKeyDown(Enum.KeyCode.S) and 1 or 0))
+		)
+		hrp.Velocity = moveDirection.Unit * flySpeed
+	end
+end)
