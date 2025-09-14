@@ -1,0 +1,186 @@
+-- Load Rayfield UI
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Services
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local plr = Players.LocalPlayer
+local camera = Workspace.CurrentCamera
+local mouse = plr:GetMouse()
+
+-- Variables
+local aimbotEnabled, espEnabled, autoShoot, fovCircleVisible = false, false, false, false
+local aimFov, aimPrediction = 100, 0.065
+local targetPlayer = nil
+local ESPObjects = {}
+
+-- Window
+local Window = Rayfield:CreateWindow({
+	Name = "▶ Arceus v7.89 Ultimate Enhanced ◀",
+	LoadingTitle = "Loading Arceus...",
+	LoadingSubtitle = "Please wait...",
+	SaveConfig = { Enabled = true, FolderName = "ArceusScripts", FileName = "Config" }
+})
+
+-- Tabs
+local ToolsTab = Window:CreateTab("Tools")
+local PlayersTab = Window:CreateTab("Players")
+local CombatTab = Window:CreateTab("Combat")
+local SettingsTab = Window:CreateTab("Settings")
+
+-- ===================
+-- Tools Tab
+-- ===================
+ToolsTab:CreateButton({ Name = "Tool 1", Callback = function() print("Tool 1 activated") end })
+ToolsTab:CreateButton({ Name = "Tool 2", Callback = function() print("Tool 2 activated") end })
+ToolsTab:CreateToggle({ Name = "Auto Tool", CurrentValue = false, Flag = "AutoTool", Callback = function(value) print("Auto Tool: "..tostring(value)) end })
+
+-- ===================
+-- Players Tab
+-- ===================
+local function updatePlayerList()
+	local options = {}
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= plr then
+			table.insert(options, p.Name)
+		end
+	end
+	PlayersTab:UpdateDropdownOptions("Teleport to Player", options)
+end
+
+PlayersTab:CreateDropdown({
+	Name = "Teleport to Player",
+	Options = {},
+	CurrentOption = "",
+	Flag = "TeleportDropdown",
+	Callback = function(playerName)
+		local target = Players:FindFirstChild(playerName)
+		if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+			plr.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame
+			print("Teleported to "..playerName)
+		end
+	end
+})
+
+-- ===================
+-- Combat Tab
+-- ===================
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness, fovCircle.NumSides, fovCircle.Radius, fovCircle.Filled, fovCircle.Color, fovCircle.Visible =
+2, 12, aimFov, false, Color3.fromRGB(255,0,0), fovCircleVisible
+
+local function isWallBetween(targetCharacter)
+	if not targetCharacter:FindFirstChild("Head") then return true end
+	local origin = camera.CFrame.Position
+	local direction = (targetCharacter.Head.Position - origin).Unit * (targetCharacter.Head.Position - origin).Magnitude
+	local rayParams = RaycastParams.new()
+	rayParams.FilterDescendantsInstances = {plr.Character, targetCharacter}
+	rayParams.FilterType = Enum.RaycastFilterType.Blacklist
+	local rayResult = Workspace:Raycast(origin, direction, rayParams)
+	return rayResult and rayResult.Instance ~= nil
+end
+
+local function getNearestPlayer()
+	local nearest = nil
+	local shortestDistance = math.huge
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= plr and player.Character and player.Character:FindFirstChild("Head") then
+			local headPos = camera:WorldToViewportPoint(player.Character.Head.Position)
+			local mousePos = Vector2.new(mouse.X, mouse.Y)
+			local distance = (Vector2.new(headPos.X, headPos.Y) - mousePos).Magnitude
+			if distance < shortestDistance and headPos.Z > 0 then
+				shortestDistance = distance
+				nearest = player
+			end
+		end
+	end
+	return nearest
+end
+
+local function predictPosition(player)
+	if player and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("HumanoidRootPart") then
+		local head = player.Character.Head
+		local hrp = player.Character.HumanoidRootPart
+		return head.Position + (hrp.Velocity * aimPrediction)
+	end
+	return nil
+end
+
+local function aimAtPlayer(player)
+	local predictedPos = predictPosition(player)
+	if predictedPos then
+		camera.CFrame = CFrame.new(camera.CFrame.Position, predictedPos)
+		if autoShoot then
+			local mouse1 = plr:GetMouse().Click
+			mouse1:FireServer()
+		end
+	end
+end
+
+-- Combat Tab Controls
+CombatTab:CreateToggle({ Name = "Enable ESP", CurrentValue = false, Flag = "ESP", Callback = function(Value) espEnabled = Value end })
+CombatTab:CreateToggle({ Name = "Enable Aimbot", CurrentValue = false, Flag = "Aimbot", Callback = function(Value) aimbotEnabled = Value; fovCircle.Visible = Value end })
+CombatTab:CreateToggle({ Name = "Auto Shoot", CurrentValue = false, Flag = "AutoShoot", Callback = function(Value) autoShoot = Value end })
+CombatTab:CreateSlider({ Name = "Aimbot FOV", Range = {0,360}, Increment = 1, CurrentValue = aimFov, Flag = "AimbotFOV", Callback = function(Value) aimFov = Value; fovCircle.Radius = Value end })
+
+-- ===================
+-- Main Loop
+-- ===================
+RunService.RenderStepped:Connect(function()
+	-- Update Player List
+	updatePlayerList()
+	
+	-- ESP
+	if espEnabled then
+		for _, p in ipairs(Players:GetPlayers()) do
+			if p ~= plr and p.Character and p.Character:FindFirstChild("Head") then
+				if not ESPObjects[p] then
+					ESPObjects[p] = {
+						box = Drawing.new("Square"),
+						name = Drawing.new("Text"),
+						healthBar = Drawing.new("Line")
+					}
+					ESPObjects[p].box.Thickness, ESPObjects[p].box.Filled = 1, false
+					ESPObjects[p].box.Color = Color3.fromRGB(255,0,0)
+					ESPObjects[p].name.Color = Color3.fromRGB(255,255,255)
+					ESPObjects[p].name.Center = true
+					ESPObjects[p].name.Outline = true
+					ESPObjects[p].name.Size = 14
+					ESPObjects[p].healthBar.Color = Color3.fromRGB(0,255,0)
+					ESPObjects[p].healthBar.Thickness = 2
+				end
+				local headPos, onScreen = camera:WorldToViewportPoint(p.Character.Head.Position)
+				local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+				local humanoid = p.Character:FindFirstChild("Humanoid")
+				if onScreen and hrp and humanoid then
+					local x, y = headPos.X-10, headPos.Y-10
+					ESPObjects[p].box.Position = Vector2.new(x, y)
+					ESPObjects[p].box.Size = Vector2.new(20,20)
+					ESPObjects[p].box.Visible = true
+					
+					ESPObjects[p].name.Position = Vector2.new(headPos.X, headPos.Y-15)
+					ESPObjects[p].name.Text = p.Name
+					ESPObjects[p].name.Visible = true
+					
+					local healthPerc = humanoid.Health / humanoid.MaxHealth
+					ESPObjects[p].healthBar.From = Vector2.new(headPos.X, headPos.Y+15)
+					ESPObjects[p].healthBar.To = Vector2.new(headPos.X + 20*healthPerc, headPos.Y+15)
+					ESPObjects[p].healthBar.Visible = true
+				else
+					ESPObjects[p].box.Visible = false
+					ESPObjects[p].name.Visible = false
+					ESPObjects[p].healthBar.Visible = false
+				end
+			end
+		end
+	end
+
+	-- Aimbot
+	if aimbotEnabled then
+		targetPlayer = getNearestPlayer()
+		if targetPlayer then
+			aimAtPlayer(targetPlayer)
+		end
+	end
+end)
