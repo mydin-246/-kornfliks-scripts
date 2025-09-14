@@ -24,7 +24,7 @@ local ESPObjects = {}
 -- Window
 local Window = Rayfield:CreateWindow({
 	Name = "▶ Gun Grounds FFA ◀",
-	LoadingTitle = "Wait a few seconds 🕢",
+	LoadingTitle = W Wait for loading",
 	LoadingSubtitle = "Script uploaded successfully 🔥",
 	SaveConfig = {
 		Enabled = true,
@@ -167,7 +167,7 @@ AimbotTab:CreateSlider({
 
 -- ESP Toggle
 ESPTab:CreateToggle({
-	Name = "🔥 ESP",
+	Name = "ESP",
 	CurrentValue = false,
 	Flag = "ESP",
 	Callback = function(Value)
