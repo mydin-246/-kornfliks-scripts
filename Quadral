@@ -1,0 +1,193 @@
+-- Load Rayfield Library
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create main window
+local Window = Rayfield:CreateWindow({
+    Name = "▶ GUL Ultimate ◀",
+    LoadingTitle = "Loading GUL Ultimate...",
+    LoadingSubtitle = "By Agreed",
+    SaveConfig = { Enabled = true, FolderName = "GUL_Ultimate_Config", FileName = "Settings" },
+})
+
+-- ===================== Tabs =====================
+local ToolsTab = Window:CreateTab("🛠 Tools")
+local PlayersTab = Window:CreateTab("🧍 Players")
+local VehiclesTab = Window:CreateTab("🚀 Vehicles")
+local SettingsTab = Window:CreateTab("⚙ Settings")
+
+-- ===================== Master Toggle =====================
+local MasterToggle = ToolsTab:CreateToggle({
+    Name = "Master Toggle 🎮",
+    CurrentValue = false,
+    Flag = "Master",
+    Callback = function(value)
+        ToolsTab.Flags["Wallhack"] = value
+        PlayersTab.Flags["AutoTeleport"] = value
+        VehiclesTab.Flags["AutoFly"] = value
+        print("Master Toggle: "..tostring(value).." ✅")
+    end,
+})
+
+-- ===================== Tools Tab =====================
+ToolsTab:CreateButton({Name = "Tool 1", Callback = function() print("Tool 1 activated") end})
+ToolsTab:CreateButton({Name = "Tool 2", Callback = function() print("Tool 2 activated") end})
+
+ToolsTab:CreateToggle({
+    Name = "Wallhack 🧱",
+    CurrentValue = false,
+    Flag = "Wallhack",
+    Callback = function(value)
+        for _, part in pairs(workspace:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.Transparency = value and ToolsTab.Flags["WallhackTransparency"] or 0
+                part.CanCollide = not value
+            end
+        end
+    end,
+})
+
+ToolsTab:CreateSlider({
+    Name = "Wallhack Transparency",
+    Range = {0, 1},
+    Increment = 0.1,
+    Suffix = "",
+    CurrentValue = 0.5,
+    Flag = "WallhackTransparency",
+    Callback = function(value)
+        if ToolsTab.Flags["Wallhack"] then
+            for _, part in pairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") then part.Transparency = value end
+            end
+        end
+    end,
+})
+
+ToolsTab:CreateButton({
+    Name = "ESP Players 👁️",
+    Callback = function()
+        for _, v in pairs(game.Players:GetPlayers()) do
+            if v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                local adorn = Instance.new("BoxHandleAdornment")
+                adorn.Adornee = v.Character.HumanoidRootPart
+                adorn.Size = v.Character.HumanoidRootPart.Size
+                adorn.Color3 = Color3.fromRGB(255,0,0)
+                adorn.AlwaysOnTop = true
+                adorn.Transparency = 0.5
+                adorn.Parent = v.Character.HumanoidRootPart
+            end
+        end
+    end,
+})
+
+ToolsTab:CreateButton({
+    Name = "ESP Tools 🔧",
+    Callback = function()
+        for _, tool in pairs(workspace:GetDescendants()) do
+            if tool:IsA("Tool") or tool:IsA("Part") then
+                local adorn = Instance.new("BoxHandleAdornment")
+                adorn.Adornee = tool
+                adorn.Size = tool.Size
+                adorn.Color3 = Color3.fromRGB(0,255,0)
+                adorn.AlwaysOnTop = true
+                adorn.Transparency = 0.5
+                adorn.Parent = tool
+            end
+        end
+    end,
+})
+
+-- ===================== Players Tab =====================
+local function updatePlayerList()
+    local list = {}
+    for i,v in pairs(game.Players:GetPlayers()) do table.insert(list, v.Name) end
+    return list
+end
+
+PlayersTab:CreateDropdown({
+    Name = "Choose Player",
+    Options = updatePlayerList(),
+    CurrentOption = game.Players.LocalPlayer.Name,
+    Flag = "TargetPlayer",
+    Callback = function(option) print("Target Player: "..option) end,
+})
+
+PlayersTab:CreateButton({
+    Name = "Teleport to Player",
+    Callback = function()
+        local target = PlayersTab.Flags["TargetPlayer"]
+        local plr = game.Players:FindFirstChild(target)
+        if plr and plr.Character and game.Players.LocalPlayer.Character then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame
+        end
+    end,
+})
+
+PlayersTab:CreateToggle({
+    Name = "Auto Teleport 👀",
+    CurrentValue = false,
+    Flag = "AutoTeleport",
+    Callback = function(value)
+        spawn(function()
+            while value do
+                wait(0.3)
+                local target = PlayersTab.Flags["TargetPlayer"]
+                local plr = game.Players:FindFirstChild(target)
+                if plr and plr.Character and game.Players.LocalPlayer.Character then
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = plr.Character.HumanoidRootPart.CFrame
+                end
+            end
+        end)
+    end,
+})
+
+-- ===================== Vehicles Tab =====================
+VehiclesTab:CreateButton({
+    Name = "Fly Vehicle ✈️",
+    Callback = function()
+        local plr = game.Players.LocalPlayer
+        if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            plr.Character.Humanoid.PlatformStand = true
+            local part = plr.Character.HumanoidRootPart
+            local speed = 100
+            local UIS = game:GetService("UserInputService")
+            spawn(function()
+                while true do
+                    wait()
+                    local cam = workspace.CurrentCamera
+                    if UIS:IsKeyDown(Enum.KeyCode.W) then part.CFrame += cam.CFrame.LookVector * speed/100 end
+                    if UIS:IsKeyDown(Enum.KeyCode.S) then part.CFrame -= cam.CFrame.LookVector * speed/100 end
+                    if UIS:IsKeyDown(Enum.KeyCode.A) then part.CFrame -= cam.CFrame.RightVector * speed/100 end
+                    if UIS:IsKeyDown(Enum.KeyCode.D) then part.CFrame += cam.CFrame.RightVector * speed/100 end
+                end
+            end)
+        end
+    end,
+})
+
+VehiclesTab:CreateToggle({
+    Name = "Auto Fly 🚀",
+    CurrentValue = false,
+    Flag = "AutoFly",
+    Callback = function(value)
+        local plr = game.Players.LocalPlayer
+        if value and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+            plr.Character.Humanoid.PlatformStand = true
+            local part = plr.Character.HumanoidRootPart
+            spawn(function()
+                while value do
+                    wait()
+                    part.CFrame = part.CFrame + Vector3.new(0,0.5,0)
+                end
+            end)
+        end
+    end,
+})
+
+-- ===================== Settings Tab =====================
+SettingsTab:CreateToggle({Name = "Enable Option", CurrentValue = false, Flag = "Option1", Callback = function(v) print("Option1: "..tostring(v)) end})
+SettingsTab:CreateSlider({Name = "Set Value", Range={0,100}, Increment=1, Suffix="%", CurrentValue=50, Flag="Slider1", Callback=function(v) print("Slider1: "..v) end})
+
+SettingsTab:CreateInput({Name = "Import Config 📂", PlaceholderText = "Paste config here...", RemoveTextAfterFocusLost=false, Callback=function(text) print("Imported: "..text) end})
+SettingsTab:CreateInput({Name = "Export Config 📤", PlaceholderText = "Your config will appear here...", RemoveTextAfterFocusLost=false, Callback=function(text) print("Exported: "..text) end})
+
+print("▶ GUL Ultimate GUI Loaded ✅")
