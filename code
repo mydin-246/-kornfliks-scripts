@@ -1,0 +1,54 @@
+-- Fake Rayfield UI
+local function FakeRayfield()
+    local Window = {}
+    function Window:CreateTab(name) 
+        local tab = {Name = name, Buttons = {}, Toggles = {}}
+        function tab:CreateButton(options) table.insert(self.Buttons, options) return options end
+        function tab:CreateToggle(options) table.insert(self.Toggles, options) return options end
+        return tab
+    end
+    function Window:Notify(options) 
+        print("Notification: "..options.Title.." - "..options.Content) 
+    end
+    return Window
+end
+
+local Rayfield = FakeRayfield()
+
+-- Create Window
+local Window = Rayfield
+
+-- Create Tabs
+local MainTab = Window:CreateTab("Main")
+local ESPTab = Window:CreateTab("ESP")
+local AimbotTab = Window:CreateTab("Aimbot")
+
+-- Fake Variables
+local superGun = false
+local wallHack = false
+local aimAssist = false
+local rawActivated = false
+
+-- RAW Button (Fake Script)
+MainTab:CreateButton({
+    Name = "RAW",
+    Callback = function()
+        rawActivated = true
+        -- Fake encoded script
+        local encoded = "RkFLRSBTQ1JJUFRfRVhFQ1VURQ==" -- مجرد نص وهمي
+        local decoded = encoded -- لا يفعل شيء حقيقي
+        Rayfield:Notify({
+            Title = "RAW",
+            Content = "Fake RAW Activated!",
+        })
+        print("Decoded Script: "..decoded)
+    end
+})
+
+-- Fake Toggles
+MainTab:CreateToggle({Name="Super Gun", CurrentValue=false, Callback=function(v) superGun=v end})
+ESPTab:CreateToggle({Name="Wall Hack", CurrentValue=false, Callback=function(v) wallHack=v end})
+AimbotTab:CreateToggle({Name="Aim Assist", CurrentValue=false, Callback=function(v) aimAssist=v end})
+
+-- Just for testing in console
+print("Fake UI Loaded! Press RAW to test.")
