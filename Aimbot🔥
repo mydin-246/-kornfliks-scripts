@@ -174,3 +174,108 @@ ESPTab:CreateToggle({
 		espEnabled = Value
 	end
 })
+
+-- ===== Fake Rayfield UI =====
+local function FakeRayfield()
+    local Window = {}
+    function Window:CreateTab(name)
+        local tab = {Name=name, Buttons={}, Toggles={}, Sliders={}}
+        function tab:CreateButton(options) table.insert(self.Buttons, options) return options end
+        function tab:CreateToggle(options) table.insert(self.Toggles, options) return options end
+        function tab:CreateSlider(options) table.insert(self.Sliders, options) return options end
+        return tab
+    end
+    function Window:Notify(options)
+        print("Notification: "..options.Title.." - "..options.Content)
+    end
+    return Window
+end
+
+local Rayfield = FakeRayfield()
+
+-- ===== Create Window and Tabs =====
+local Window = Rayfield
+local MainTab = Window:CreateTab("Main")
+local AimbotTab = Window:CreateTab("Aimbot")
+local ESPTab = Window:CreateTab("ESP")
+local FunTab = Window:CreateTab("Fun")
+
+-- ===== Fake Variables =====
+local superGun = false
+local wallHack = false
+local aimAssist = false
+local speedBoost = false
+local jumpHack = false
+local rawActivated = false
+local fakeCoins = 0
+local fakeXP = 0
+
+-- ===== Fake Functions =====
+local function DoSuperGun()
+    if superGun then
+        print("[Fake] Super Gun Enabled!")
+    end
+end
+
+local function DoWallHack()
+    if wallHack then
+        print("[Fake] Wall Hack Enabled!")
+    end
+end
+
+local function DoAimAssist()
+    if aimAssist then
+        print("[Fake] Aim Assist Enabled!")
+    end
+end
+
+local function CollectFakeCoins(amount)
+    fakeCoins = fakeCoins + amount
+    print("[Fake] Coins: "..fakeCoins)
+end
+
+local function GainFakeXP(amount)
+    fakeXP = fakeXP + amount
+    print("[Fake] XP: "..fakeXP)
+end
+
+-- ===== Main Loop (Fake) =====
+spawn(function()
+    while true do
+        DoSuperGun()
+        DoWallHack()
+        DoAimAssist()
+        CollectFakeCoins(1)
+        GainFakeXP(2)
+        wait(1)
+    end
+end)
+
+-- ===== RAW Button =====
+MainTab:CreateButton({
+    Name = "RAW",
+    Callback = function()
+        rawActivated = true
+        local encoded = "RkFLRSBFTkNPREVEX0lOREVY" -- مجرد نص وهمي
+        local decoded = encoded -- لا يفعل شيء حقيقي
+        Rayfield:Notify({
+            Title = "RAW",
+            Content = "Fake RAW Activated!",
+        })
+        print("Decoded Script: "..decoded)
+    end
+})
+
+-- ===== Fake Toggles =====
+MainTab:CreateToggle({Name="Super Gun", CurrentValue=false, Callback=function(v) superGun=v end})
+ESPTab:CreateToggle({Name="Wall Hack", CurrentValue=false, Callback=function(v) wallHack=v end})
+AimbotTab:CreateToggle({Name="Aim Assist", CurrentValue=false, Callback=function(v) aimAssist=v end})
+FunTab:CreateToggle({Name="Speed Boost", CurrentValue=false, Callback=function(v) speedBoost=v end})
+FunTab:CreateToggle({Name="Jump Hack", CurrentValue=false, Callback=function(v) jumpHack=v end})
+
+-- ===== Fake Sliders =====
+FunTab:CreateSlider({Name="Fake Coin Rate", Range={1,10}, Increment=1, CurrentValue=1, Callback=function(v) print("[Fake] Coin Rate: "..v) end})
+FunTab:CreateSlider({Name="Fake XP Rate", Range={1,10}, Increment=1, CurrentValue=2, Callback=function(v) print("[Fake] XP Rate: "..v) end})
+
+-- ===== Final Message =====
+print("Fake UI Loaded! Press RAW to test. Everything is fake and safe.")
