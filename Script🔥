@@ -1,0 +1,60 @@
+-- سكريبت تجربة تعليمية مدمج
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- وظيفة التشفير للرابط الخارجي (إذا احتجت)
+local function encodeURL(url)
+    url = string.gsub(url, "|", "%%7C")
+    url = string.gsub(url, "🟢", "%%F0%%9F%%9F%%A2")
+    url = string.gsub(url, "🟠", "%%F0%%9F%%9F%%A0")
+    url = string.gsub(url, "🔴", "%%F0%%9F%%94%%B4")
+    return url
+end
+
+-- إشعارات تعليمية أول مرة ومرّة ثانية
+local hasRunBefore = false
+if not player:FindFirstChild("HasRunScript") then
+    hasRunBefore = false
+    local marker = Instance.new("BoolValue")
+    marker.Name = "HasRunScript"
+    marker.Value = true
+    marker.Parent = player
+else
+    hasRunBefore = true
+end
+
+-- دالة عرض إشعار
+local function showNotification(title, message, duration)
+    local StarterGui = game:GetService("StarterGui")
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = message,
+        Duration = duration or 5
+    })
+end
+
+-- الترحيب
+if not hasRunBefore then
+    showNotification("أهلاً بك يا مستخدم جديد", "تم تفعيل السكريبت التعليمي.", 5)
+else
+    showNotification("مرحباً بك مرة أخرى يا برو", "استمتع بتجربتك التعليمية.", 5)
+end
+
+-- مثال أداة تعليمية وهمية
+local function spawnExampleTool()
+    local tool = Instance.new("Tool")
+    tool.Name = "أداة تعليمية"
+    tool.Parent = player.Backpack
+end
+
+spawnExampleTool()
+
+-- تحميل أي سكريبت خارجي تعليمي (رابط GitHub/raw)
+local externalScriptURL = "https://raw.githubusercontent.com/username/repo/main/Example.lua"
+local success, err = pcall(function()
+    loadstring(game:HttpGet(encodeURL(externalScriptURL)))()
+end)
+if not success then
+    warn("فشل تحميل السكريبت الخارجي:", err)
+end
