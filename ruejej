@@ -1,0 +1,137 @@
+-- Load Rayfield Library
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create main window
+local Window = Rayfield:CreateWindow({
+    Name = "▶ GUL ◀",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Please wait",
+    SaveConfig = { Enabled = true, FolderName = "empty", FileName = "byAgreed" },
+})
+
+-- Pages (Tabs)
+local AimbotTab = Window:CreateTab("Aimbot") -- تبويب خاص بميزات الايمبوت
+local VisualsTab = Window:CreateTab("Visuals (ESP)") -- تبويب العرض (ESP/Wallhack)
+local PlayersTab = Window:CreateTab("Players")
+local SettingsTab = Window:CreateTab("Settings")
+
+-- ----------------------------------------------------
+-- Aimbot Tab (الميزات المتقدمة)
+-- ----------------------------------------------------
+
+AimbotTab:CreateToggle({
+    Name = "Aimbot الرئيسي",
+    CurrentValue = false,
+    Flag = "MainAimbotToggle",
+    Callback = function(value)
+        print("Main Aimbot Active: "..tostring(value))
+    end,
+})
+
+AimbotTab:CreateSlider({
+    Name = "FOV (مجال الرؤية)",
+    Range = {1, 360},
+    Increment = 5,
+    Suffix = " درجة",
+    CurrentValue = 90,
+    Flag = "AimbotFOV",
+    Callback = function(value)
+        print("FOV Set to: "..value)
+    end,
+})
+
+AimbotTab:CreateDropdown({
+    Name = "العضو المستهدف",
+    Options = {"Head", "Torso", "Hips", "Closest"},
+    CurrentOption = "Head",
+    Callback = function(option)
+        print("Target Part Set to: "..option)
+    end,
+})
+
+AimbotTab:CreateToggle({
+    Name = "Silent Aim (التصويب الصامت)",
+    CurrentValue = false,
+    Flag = "SilentAimToggle",
+    Callback = function(value)
+        print("Silent Aim: "..tostring(value))
+    end,
+})
+
+-- ----------------------------------------------------
+-- Visuals Tab (ESP/Wallhack)
+-- ----------------------------------------------------
+
+VisualsTab:CreateToggle({
+    Name = "Enable ESP Box",
+    CurrentValue = false,
+    Flag = "ESPBoxToggle",
+    Callback = function(value)
+        print("ESP Box: "..tostring(value))
+    end,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Show Health & Name",
+    CurrentValue = true,
+    Flag = "ESPInfoToggle",
+    Callback = function(value)
+        print("Health/Name Info: "..tostring(value))
+    end,
+})
+
+VisualsTab:CreateSlider({
+    Name = "Trace Line Opacity",
+    Range = {0, 1},
+    Increment = 0.1,
+    CurrentValue = 0.5,
+    Flag = "TraceOpacity",
+    Callback = function(value)
+        print("Trace Opacity: "..value)
+    end,
+})
+
+-- ----------------------------------------------------
+-- Players Tab 
+-- ----------------------------------------------------
+
+PlayersTab:CreateButton({
+    Name = "Select Player",
+    Callback = function()
+        print("Player selected")
+    end,
+})
+
+PlayersTab:CreateDropdown({
+    Name = "Choose Player",
+    Options = {"Player1", "Player2", "Player3"},
+    CurrentOption = "Player1",
+    Callback = function(option)
+        print("Selected Player: "..option)
+    end,
+})
+
+-- ----------------------------------------------------
+-- Settings Tab 
+-- ----------------------------------------------------
+
+SettingsTab:CreateToggle({
+    Name = "Enable Option",
+    CurrentValue = false,
+    Flag = "Option1",
+    Callback = function(value)
+        print("Option enabled: "..tostring(value))
+    end,
+})
+
+SettingsTab:CreateSlider({
+    Name = "Set Value",
+    Range = {0, 100},
+    Increment = 1,
+    Suffix = "%",
+    CurrentValue = 50,
+    Flag = "Slider1",
+    Callback = function(value)
+        print("Slider value: "..value)
+    end,
+})
