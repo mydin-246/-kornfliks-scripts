@@ -1,0 +1,86 @@
+-- Load Rayfield Library
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create main window
+local Window = Rayfield:CreateWindow({
+    Name = "🐲 Dragon Summoner v1.1",
+    LoadingTitle = "Preparing Summoning Ritual...",
+    LoadingSubtitle = "Scanning for Dragon Instances...",
+    SaveConfig = { Enabled = true, FolderName = "DragonTools", FileName = "SummonConfig" },
+})
+
+-- Pages (Tabs)
+local SummonTab = Window:CreateTab("Summoning")
+local FilterTab = Window:CreateTab("Filters") 
+
+-- قائمة بالكائنات الافتراضية التي يمكن استدعاؤها
+local availableDragons = {
+    "Dragon_Fire_Variant",
+    "Dragon_Ice_Wing",
+    "Dragon_Ancient_Guardian",
+    "Wyvern_Lesser",
+    "Drake_Mountain_King",
+    "Dragonite_Legendary",
+    "Phoenix_Fire_Bird"
+}
+
+-- ----------------------------------------------------
+-- Summoning Tab (الاستدعاء)
+-- ----------------------------------------------------
+
+SummonTab:CreateDropdown({
+    Name = "اختر كائن Dragon للاستدعاء",
+    Options = availableDragons,
+    CurrentOption = availableDragons[1],
+    Flag = "SelectedDragon",
+    Callback = function(option)
+        print("SUMMONER: تم اختيار الكائن: " .. option)
+    end,
+})
+
+SummonTab:CreateButton({
+    Name = "▶ استدعاء الكائن الآن ◀",
+    Callback = function()
+        -- الحصول على الكائن المختار من Dropdown
+        local selected = Rayfield.Flags.SelectedDragon
+
+        -- تنفيذ وظيفة المحاكاة
+        if selected and string.find(selected, "Dragon", 1, true) then
+            -- محاكاة استدعاء ناجح لكائن يبدأ اسمه بـ "Dragon"
+            print("==================================================")
+            print("✅ SUCCESS: تم استدعاء الكائن بنجاح!")
+            print("🐲 Instantiated Object: " .. selected)
+            print("🚀 Location: Near Player (Simulated)")
+            print("==================================================")
+        else
+            -- محاكاة فشل في الاستدعاء لكائن لا يبدأ بـ "Dragon"
+            print("❌ ERROR: هذا الكائن ليس من فصيلة Dragon ولا يمكن استدعاؤه بهذا الأمر.")
+            print("Selected: " .. selected)
+        end
+    end,
+})
+
+
+-- ----------------------------------------------------
+-- Filter Tab (لتطبيق الشروط التي طلبتها)
+-- ----------------------------------------------------
+
+FilterTab:CreateToggle({
+    Name = "تفعيل فلتر 'يبدأ الاسم بـ Dragon'",
+    CurrentValue = true,
+    Flag = "DragonFilter",
+    Callback = function(value)
+        print("FILTER: Dragon Name Filter: " .. tostring(value))
+    end,
+})
+
+FilterTab:CreateButton({
+    Name = "عرض جميع الكائنات المتوفرة",
+    Callback = function()
+        print("--- قائمة الكائنات المتوفرة ---")
+        for i, name in ipairs(availableDragons) do
+            print(i .. ". " .. name)
+        end
+        print("-----------------------------------")
+    end,
+})
