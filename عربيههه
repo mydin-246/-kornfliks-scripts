@@ -1,0 +1,121 @@
+-- Load Rayfield Library (Required for the GUI)
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create main window
+local Window = Rayfield:CreateWindow({
+    Name = "⚡ | HYPER-EXPLOIT v3.0 | 🛡️",
+    LoadingTitle = "Initializing HyperDrive...",
+    LoadingSubtitle = "Loading Advanced Modules...",
+    SaveConfig = { Enabled = true, FolderName = "HyperScripts", FileName = "HyperConfig" },
+})
+
+-- Pages (Tabs)
+local CombatTab = Window:CreateTab("Combat | AIMBOT")
+local VisualsTab = Window:CreateTab("Visuals | ESP") 
+local MiscTab = Window:CreateTab("Miscellaneous") 
+
+-- ----------------------------------------------------
+-- Combat Tab (AIMBOT)
+-- ----------------------------------------------------
+
+CombatTab:CreateToggle({
+    Name = "MAIN AIM ASSIST (Bypass)",
+    CurrentValue = false,
+    Flag = "MainAimbotToggle",
+    Callback = function(value)
+        print("AIMBOT: Main Toggle State: "..tostring(value))
+    end,
+})
+
+-- Aimbot Advanced Settings (Smoothness, Prediction)
+CombatTab:CreateSlider({
+    Name = "Aimbot Smoothing (Humanize)",
+    Range = {0, 10},
+    Increment = 0.5,
+    Suffix = " Level",
+    CurrentValue = 5,
+    Flag = "AimbotSmooth",
+    Callback = function(value)
+        print("AIMBOT: Smoothness set to: "..value)
+    end,
+})
+
+CombatTab:CreateToggle({
+    Name = "Bullet Drop Prediction",
+    CurrentValue = true,
+    Flag = "PredictionToggle",
+    Callback = function(value)
+        print("AIMBOT: Bullet Prediction: "..tostring(value))
+    end,
+})
+
+CombatTab:CreateDropdown({
+    Name = "Priority Target Filter",
+    Options = {"Closest Distance", "Lowest Health", "Visible Only", "Head Only"},
+    CurrentOption = "Closest Distance",
+    Callback = function(option)
+        print("AIMBOT: Priority set to: "..option)
+    end,
+})
+
+-- ----------------------------------------------------
+-- Visuals Tab (ESP/Wallhack)
+-- ----------------------------------------------------
+
+VisualsTab:CreateToggle({
+    Name = "3D Player Box ESP",
+    CurrentValue = false,
+    Flag = "3DESPToggle",
+    Callback = function(value)
+        print("ESP: 3D Box Toggle: "..tostring(value))
+    end,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Health and Distance Check",
+    CurrentValue = true,
+    Flag = "HealthDistanceToggle",
+    Callback = function(value)
+        print("ESP: Health/Distance Info: "..tostring(value))
+    end,
+})
+
+VisualsTab:CreateToggle({
+    Name = "Item and Loot Tracers",
+    CurrentValue = false,
+    Flag = "LootTracersToggle",
+    Callback = function(value)
+        print("ESP: Loot Tracers: "..tostring(value))
+    end,
+})
+
+VisualsTab:CreateDropdown({
+    Name = "Line Trace Location",
+    Options = {"Center Screen", "Bottom of Player", "Top of Player"},
+    CurrentOption = "Bottom of Player",
+    Callback = function(option)
+        print("ESP: Trace Line Origin: "..option)
+    end,
+})
+
+-- ----------------------------------------------------
+-- Miscellaneous Tab
+-- ----------------------------------------------------
+
+MiscTab:CreateButton({
+    Name = "Teleport to Spawn Point",
+    Callback = function()
+        print("MISC: Teleport initiated to Spawn.")
+    end,
+})
+
+MiscTab:CreateSlider({
+    Name = "Walk Speed Modifier",
+    Range = {16, 100},
+    Increment = 4,
+    CurrentValue = 32,
+    Flag = "WalkSpeed",
+    Callback = function(value)
+        print("MISC: Walk Speed Set to: "..value)
+    end,
+})
