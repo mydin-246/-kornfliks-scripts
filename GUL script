@@ -1,0 +1,178 @@
+-- Load the stable Rayfield Library using a more recent/reliable source
+local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/Rayfield-Developer/Rayfield/main/source.lua"))()
+
+-- Get services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+-- Check for the RemoteEvent (Required for Weapon Spawner)
+-- Note: This requires a Server Script to exist and handle the event!
+local GiveToolEvent = ReplicatedStorage:WaitForChild("GiveToolEvent") 
+
+local TargetedWeapons = {"M4A1", "SniperRifle", "Shotgun", "Pistol"}
+local TICTOK_USER = "@tiktok.com.5155"
+
+-- ================================================================= --
+-- 1. INF JUMP LOGIC (Updated for better stability)
+-- ================================================================= --
+
+local InfJumpActive = false
+local InfJumpLoop = nil
+
+local function ToggleInfJump(active)
+    InfJumpActive = active
+    
+    if InfJumpLoop then
+        InfJumpLoop:Disconnect()
+        InfJumpLoop = nil
+    end
+
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+        local Humanoid = LocalPlayer.Character.Humanoid
+        
+        if active then
+            Humanoid.JumpPower = 90 
+            
+            -- Continuous loop to maintain JumpPower against game resets
+            InfJumpLoop = RunService.Stepped:Connect(function()
+                if Humanoid.JumpPower ~= 90 then
+                    Humanoid.JumpPower = 90
+                end
+            end)
+            
+        else
+            Humanoid.JumpPower = 50 -- Reset to default
+        end
+    end
+end
+
+-- ================================================================= --
+-- 2. THEME & WINDOW CREATION (DXZM.wtf Style)
+-- ================================================================= --
+
+-- Custom Theme (Black and Red, matching the reference image)
+local CustomTheme = {
+    ['ThemeColor'] = Color3.fromRGB(200, 0, 0), 
+    ['BackgroundColor'] = Color3.fromRGB(15, 15, 15), 
+    ['ButtonColor'] = Color3.fromRGB(30, 30, 30), 
+    ['AccentColor'] = Color3.fromRGB(255, 0, 0),
+}
+Rayfield:SetTheme(CustomTheme) 
+
+-- TIKTOK FOLLOW PROMPT (Your Customization)
+Rayfield:SetLoadingText("Exclusive Content! Please follow my TikTok account for feature updates.")
+Rayfield:ChangeLoadingText("Follow: "..TICTOK_USER)
+wait(3) 
+
+-- WINDOW CREATION (DXZM.wtf)
+local Window = Rayfield:CreateWindow({
+    Name = "DXZM.wtf",
+    LoadingTitle = "DXZM",
+    LoadingSubtitle = "Initializing Module v1.0...",
+    SaveConfig = { Enabled = true, FolderName = "DXZM_Config", FileName = "Config" },
+})
+
+-- ================================================================= --
+-- 3. TABS CREATION
+-- ================================================================= --
+
+local SettingsTab = Window:CreateTab("Settings")
+local WeaponsTab = Window:CreateTab("Weapons") 
+
+-- ================================================================= --
+-- 4. WEAPONS TAB CONTENT (Spawner Feature)
+-- ================================================================= --
+
+WeaponsTab:CreateDropdown({
+    Name = "Select Weapon to Spawn",
+    Options = TargetedWeapons,
+    CurrentOption = TargetedWeapons[1],
+    Flag = "SelectedWeapon",
+    Callback = function(option) end,
+})
+
+WeaponsTab:CreateButton({
+    Name = "Spawn Selected Weapon",
+    Callback = function()
+        local WeaponName = Window.Flags.SelectedWeapon
+        if GiveToolEvent and WeaponName then
+            GiveToolEvent:FireServer(WeaponName)
+        else
+            warn("ERROR: RemoteEvent not ready or no weapon selected.")
+        end
+    end,
+})
+
+WeaponsTab:CreateButton({
+    Name = "Spawn ALL Targeted Weapons",
+    Callback = function()
+        for _, Weapon in ipairs(TargetedWeapons) do
+            if GiveToolEvent then
+                GiveToolEvent:FireServer(Weapon)
+            end
+        end
+    end,
+})
+
+-- ================================================================= --
+-- 5. SETTINGS TAB CONTENT (INF JUMP & DXZM Replica)
+-- ================================================================= --
+
+-- Group 1: Main 
+local MainGroup = SettingsTab:CreateSection("Main")
+
+-- INF JUMP TOGGLE (Your INFJUMP implementation)
+MainGroup:CreateToggle({
+    Name = "Infinite Jump (INFJUMP)",
+    CurrentValue = false,
+    Flag = "InfJumpToggle",
+    Callback = function(value)
+        ToggleInfJump(value)
+    end,
+})
+
+-- Rest of the DXZM Main items
+MainGroup:CreateLabel("Open / Close [RSHIFT]") 
+MainGroup:CreateButton({Name = "Disable Movement If Open", Callback = function() end})
+MainGroup:CreateButton({Name = "Join Discord", Callback = function() end})
+MainGroup:CreateButton({Name = "Copy Discord", Callback = function() end})
+MainGroup:CreateButton({Name = "Rejoin Server", Callback = function() end})
+MainGroup:CreateButton({Name = "Copy Join Script", Callback = function() end})
+MainGroup:CreateButton({Name = "Unload", Callback = function() Rayfield:Unload() end})
+MainGroup:CreateButton({Name = "Keybinds", Callback = function() end})
+MainGroup:CreateSlider({Name = "Position X: 0.5", Range = {0, 1}, Increment = 0.01, CurrentValue = 0.5, Flag = "PosX", Callback = function() end})
+MainGroup:CreateSlider({Name = "Position Y: 35", Range = {0, 100}, Increment = 1, CurrentValue = 35, Flag = "PosY", Callback = function() end})
+
+-- Watermark Section
+MainGroup:CreateSection("Watermark") 
+MainGroup:CreateToggle({Name = "Enabled", CurrentValue = true, Flag = "WatermarkToggle", Callback = function() end})
+MainGroup:CreateButton({Name = "Position", Callback = function() end})
+MainGroup:CreateSlider({Name = "Custom X: 6%", Range = {0, 100}, Increment = 1, Suffix = "%", CurrentValue = 6, Flag = "WMX", Callback = function() end})
+MainGroup:CreateSlider({Name = "Custom Y: 1.1%", Range = {0, 10}, Increment = 0.1, Suffix = "%", CurrentValue = 1.1, Flag = "WMY", Callback = function() end})
+
+-- Theme Section
+MainGroup:CreateSection("Theme")
+MainGroup:CreateDropdown({Name = "Presets", Options = {"Default", "Custom"}, CurrentOption = "Default", Flag = "ThemePreset", Callback = function() end})
+
+-- Group 2: Config
+local ConfigGroup = SettingsTab:CreateSection("Config")
+ConfigGroup:CreateLabel("Config Name")
+ConfigGroup:CreateInput({Name = "none", Placeholder = "Enter Config Name", Flag = "ConfigName", Callback = function() end})
+ConfigGroup:CreateButton({Name = "Load", Callback = function() end})
+ConfigGroup:CreateButton({Name = "Save", Callback = function() end})
+ConfigGroup:CreateButton({Name = "Create", Callback = function() end})
+ConfigGroup:CreateButton({Name = "Delete", Callback = function() end})
+
+-- Group 3: Credits
+local CreditsGroup = SettingsTab:CreateSection("Credits")
+CreditsGroup:CreateLabel("Owners/Developers")
+CreditsGroup:CreateLabel("xz#1111")
+CreditsGroup:CreateLabel("goof#1000")
+CreditsGroup:CreateLabel("Helpers")
+CreditsGroup:CreateLabel("encode#9999")
+CreditsGroup:CreateLabel("Vault#5434")
+
+-- Finalizing the UI
+Window:ChangeLoadingText("DXZM Menu is Ready!")
