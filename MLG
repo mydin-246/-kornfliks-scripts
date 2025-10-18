@@ -1,0 +1,288 @@
+--[ Delta Executor - ULTIMATE HACK Script (NoClip + Speed + WallHack) ]--
+
+local GuiName = "InformantWTF_ULTRA"
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = GuiName
+ScreenGui.DisplayOrder = 1000
+ScreenGui.IgnoreGuiInset = true
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
+
+local OriginalRespawnLocation = CFrame.new(0,50,0)
+local CurrentCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- تحديث الشخصية ونقطة البداية
+LocalPlayer.CharacterAdded:Connect(function(char)
+    CurrentCharacter = char
+    wait(0.5)
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if hrp then OriginalRespawnLocation = hrp.CFrame end
+end)
+
+-- Injection Path
+local Target = game:GetService("CoreGui") or PlayerGui
+ScreenGui.Parent = Target
+
+-- إشعار تفعيل
+StarterGui:SetCore("SendNotification", {
+    Title = "✅ تم تفعيل Informant.WTF ULTIMATE",
+    Text = "يرجى متابعة الحساب على تيك توك لدعمنا! اليوزر: tiktok.com.5155",
+    Icon = "rbxassetid://306029199",
+    Duration = 7,
+})
+
+-- ===== GUI الأساسي =====
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "Main"
+MainFrame.Size = UDim2.new(0.9,0,0.75,0)
+MainFrame.Position = UDim2.new(0.5,0,0.5,0)
+MainFrame.AnchorPoint = Vector2.new(0.5,0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+MainFrame.BorderColor3 = Color3.fromRGB(255,100,0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "Close"
+CloseButton.Parent = MainFrame
+CloseButton.Text = "X"
+CloseButton.Size = UDim2.new(0,30,0,30)
+CloseButton.Position = UDim2.new(1,-30,0,0)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255,0,0)
+CloseButton.TextColor3 = Color3.fromRGB(255,255,255)
+CloseButton.TextSize = 20
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.Text = "Informant.WTF - ULTIMATE EDITION"
+TitleLabel.Size = UDim2.new(1,-30,0,30)
+TitleLabel.Position = UDim2.new(0,0,0,0)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(40,40,40)
+TitleLabel.TextColor3 = Color3.fromRGB(255,255,255)
+TitleLabel.TextSize = 20
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Name = "Content"
+ContentFrame.Parent = MainFrame
+ContentFrame.Size = UDim2.new(1,0,1,-30)
+ContentFrame.Position = UDim2.new(0,0,0,30)
+ContentFrame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+ContentFrame.BorderSizePixel = 0
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Parent = ContentFrame
+ListLayout.FillDirection = Enum.FillDirection.Vertical
+ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ListLayout.Padding = UDim.new(0,5)
+
+-- ===== دوال مساعدة =====
+local function createToggleFunction(button, toggleFuncOn, toggleFuncOff)
+    local IsActive = false
+    local DefaultColor = Color3.fromRGB(50,50,50)
+    local ActiveColor = Color3.fromRGB(0,150,0)
+    button.BackgroundColor3 = DefaultColor
+
+    button.MouseButton1Click:Connect(function()
+        IsActive = not IsActive
+        if IsActive then
+            button.BackgroundColor3 = ActiveColor
+            button.Text = button.Name.." [فعال]"
+            toggleFuncOn(button)
+        else
+            button.BackgroundColor3 = DefaultColor
+            button.Text = button.Name
+            toggleFuncOff(button)
+        end
+        print(button.Name.." Toggled to: "..tostring(IsActive))
+    end)
+end
+
+local function createToggle(name, parentFrame, onFunc, offFunc)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Parent = parentFrame
+    Button.Text = name
+    Button.Size = UDim2.new(0.9,0,0,35)
+    Button.BackgroundColor3 = Color3.fromRGB(50,50,50)
+    Button.TextColor3 = Color3.fromRGB(255,255,255)
+    Button.TextSize = 18
+    Button.Font = Enum.Font.SourceSansBold
+    Button.AutoButtonColor = false
+    createToggleFunction(Button,onFunc,offFunc)
+    return Button
+end
+
+local function createOneShot(name,parentFrame,actionFunc)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Parent = parentFrame
+    Button.Text = name
+    Button.Size = UDim2.new(0.9,0,0,35)
+    Button.BackgroundColor3 = Color3.fromRGB(70,70,70)
+    Button.TextColor3 = Color3.fromRGB(255,255,255)
+    Button.TextSize = 18
+    Button.Font = Enum.Font.SourceSansBold
+    Button.AutoButtonColor = false
+
+    Button.MouseButton1Click:Connect(function()
+        actionFunc(Button)
+        Button.BackgroundColor3 = Color3.fromRGB(0,150,0)
+        Button.Text = name.." [تم]"
+        wait(0.5)
+        Button.BackgroundColor3 = Color3.fromRGB(70,70,70)
+        Button.Text = name
+    end)
+    return Button
+end
+
+-- ===== وظائف ULTIMATE HACK =====
+
+-- NoClip
+local NoClipConnection = nil
+local function toggleNoClip(button)
+    if NoClipConnection then NoClipConnection:Disconnect() end
+    NoClipConnection = RunService.Stepped:Connect(function()
+        if CurrentCharacter and CurrentCharacter:FindFirstChild("HumanoidRootPart") then
+            CurrentCharacter.HumanoidRootPart.CanCollide = false
+        end
+    end)
+end
+local function stopNoClip(button)
+    if NoClipConnection then NoClipConnection:Disconnect(); NoClipConnection=nil end
+    if CurrentCharacter and CurrentCharacter:FindFirstChild("HumanoidRootPart") then
+        CurrentCharacter.HumanoidRootPart.CanCollide = true
+    end
+end
+
+-- Speed & Jump
+local OriginalWalkSpeed = 16
+local OriginalJumpPower = 50
+local SpeedEnabled = false
+local function toggleSpeedBoost(button)
+    if SpeedEnabled then return end
+    SpeedEnabled = true
+    local Humanoid = CurrentCharacter:FindFirstChild("Humanoid")
+    if Humanoid then
+        OriginalWalkSpeed = Humanoid.WalkSpeed
+        OriginalJumpPower = Humanoid.JumpPower
+        Humanoid.WalkSpeed = 60
+        Humanoid.JumpPower = 100
+    end
+end
+local function stopSpeedBoost(button)
+    SpeedEnabled = false
+    local Humanoid = CurrentCharacter:FindFirstChild("Humanoid")
+    if Humanoid then
+        Humanoid.WalkSpeed = OriginalWalkSpeed
+        Humanoid.JumpPower = OriginalJumpPower
+    end
+end
+
+-- Wallhack
+local XrayConnection = nil
+local function toggleXray(button)
+    if XrayConnection then XrayConnection:Disconnect() end
+    XrayConnection = RunService.RenderStepped:Connect(function()
+        for _, part in ipairs(Workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide and part.Transparency<0.9 and not part:IsDescendantOf(CurrentCharacter) then
+                part.LocalTransparencyModifier = 0.6
+            end
+        end
+    end)
+end
+local function stopXray(button)
+    if XrayConnection then XrayConnection:Disconnect(); XrayConnection=nil end
+    for _, part in ipairs(Workspace:GetDescendants()) do
+        if part:IsA("BasePart") then part.LocalTransparencyModifier = 0 end
+    end
+end
+
+-- Damage Indicators
+local IndicatorEnabled = false
+local function toggleIndicators(button)
+    IndicatorEnabled = true
+    local function connectCharacter(char)
+        if char and char~=CurrentCharacter then
+            local humanoid = char:FindFirstChild("Humanoid")
+            local head = char:FindFirstChild("Head")
+            if humanoid and head then
+                local LastHealth = humanoid.Health
+                humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                    if IndicatorEnabled then
+                        local newHealth = humanoid.Health
+                        local dmg = math.floor(LastHealth - newHealth)
+                        LastHealth = newHealth
+                        if dmg>0 then
+                            local DamageIndicator = Instance.new("TextLabel")
+                            DamageIndicator.Text = "-"..tostring(dmg)
+                            DamageIndicator.Size = UDim2.new(0,100,0,30)
+                            DamageIndicator.BackgroundTransparency = 1
+                            DamageIndicator.TextColor3 = Color3.fromRGB(255,50,50)
+                            DamageIndicator.TextSize = 20
+                            DamageIndicator.Font = Enum.Font.SourceSansBold
+
+                            local BillboardGui = Instance.new("BillboardGui")
+                            BillboardGui.Adornee = head
+                            BillboardGui.MaxDistance = 100
+                            BillboardGui.Size = UDim2.new(0,200,0,50)
+                            DamageIndicator.Parent = BillboardGui
+                            BillboardGui.Parent = PlayerGui
+
+                            local tweenService = game:GetService("TweenService")
+                            local info = TweenInfo.new(1.5,Enum.EasingStyle.Quad,Enum.EasingDirection.Out)
+                            local goal = {Position=UDim2.new(0,0,0,-50), TextTransparency=1}
+                            tweenService:Create(DamageIndicator,info,goal):Play()
+                            wait(1.5)
+                            BillboardGui:Destroy()
+                        end
+                    end
+                end)
+            end
+        end
+    end
+    for _, player in ipairs(Players:GetChildren()) do
+        connectCharacter(player.Character)
+        player.CharacterAdded:Connect(connectCharacter)
+    end
+end
+local function stopIndicators(button)
+    IndicatorEnabled = false
+end
+
+-- Teleport Spawn
+local function teleportToSpawn(button)
+    if CurrentCharacter and CurrentCharacter:FindFirstChild("HumanoidRootPart") then
+        CurrentCharacter.HumanoidRootPart.CFrame = OriginalRespawnLocation
+    end
+end
+
+-- ===== إضافة الأزرار =====
+createToggle("إختراق الجدران (NoClip)",ContentFrame,toggleNoClip,stopNoClip)
+createToggle("تعزيز السرعة والقفز",ContentFrame,toggleSpeedBoost,stopSpeedBoost)
+createToggle("رؤية شفافة (Wallhack)",ContentFrame,toggleXray,stopXray)
+createToggle("كشف الأرقام (Damage/Health)",ContentFrame,toggleIndicators,stopIndicators)
+createOneShot("العودة لنقطة البداية (Spawn)",ContentFrame,teleportToSpawn)
+
+-- كريديت
+local CreditsLabel = Instance.new("TextLabel")
+CreditsLabel.Parent = ContentFrame
+CreditsLabel.Text = "--- Developed by Gemini | Follow: tiktok.com.5155 ---"
+CreditsLabel.Size = UDim2.new(0.9,0,0,25)
+CreditsLabel.BackgroundColor3 = Color3.fromRGB(40,40,40)
+CreditsLabel.TextColor3 = Color3.fromRGB(150,150,150)
+CreditsLabel.TextSize = 14
+local UITLayout = Instance.new("UITextSizeConstraint")
+UITLayout.MaxTextSize = 14
+UITLayout.Parent = CreditsLabel
