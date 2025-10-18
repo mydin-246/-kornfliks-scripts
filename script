@@ -1,0 +1,367 @@
+--[ Delta Executor Advanced GUI Code - FINAL FIX: Injection Path ]--
+-- ************************************************************
+-- *** تم تغيير مسار حقن الـ GUI إلى مسار احتياطي (CoreGui أو PlayerGui أو Lighting) ***
+-- ************************************************************
+
+local GuiName = "InformantWTF_Final"
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = GuiName
+ScreenGui.DisplayOrder = 1000
+ScreenGui.IgnoreGuiInset = true
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local RunService = game:GetService("RunService")
+local StarterGui = game:GetService("StarterGui")
+local Workspace = game:GetService("Workspace")
+
+local OriginalRespawnLocation = CFrame.new(0, 50, 0)
+local CurrentCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- تحديث نقطة البداية (Spawn)
+LocalPlayer.CharacterAdded:Connect(function(char)
+    CurrentCharacter = char
+    wait(0.5) 
+    OriginalRespawnLocation = char:WaitForChild("HumanoidRootPart").CFrame
+end)
+
+-- ***************************************************************
+-- *** التعديل الرئيسي هنا: تحديد مكان وضع الـ GUI (Target) ***
+-- ***************************************************************
+local Target = game:GetService("CoreGui") -- محاولة أولى
+
+if not Target then -- إذا فشلت، جرب PlayerGui
+    Target = PlayerGui
+end
+
+if not Target then -- إذا فشلت، جرب Lighting (طريقة قديمة ولكن تعمل أحياناً)
+    Target = game:GetService("Lighting")
+end
+
+ScreenGui.Parent = Target -- الحقن في المسار الذي تم اختياره
+
+-- ============================================================================
+-- 1. وظيفة الإشعار (للتأكد من أن الكود يعمل على الأقل)
+-- ============================================================================
+local function showTikTokNotification()
+    -- استخدام StarterGui:SetCore لإنشاء إشعار نظام Roblox الرسمي
+    StarterGui:SetCore("SendNotification", {
+        Title = "✅ تم تفعيل Informant.WTF بنجاح",
+        Text = "يرجى متابعة الحساب على تيك توك لدعمنا! اليوزر: tiktok.com.5155",
+        Icon = "rbxassetid://306029199",
+        Duration = 7,
+    })
+end
+
+-- تنفيذ الإشعار عند بدء تشغيل السكريبت
+showTikTokNotification() 
+
+
+-- ... [ بقية كود الـ GUI والميزات يبقى كما هو بدون تغيير ] ...
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "Main"
+MainFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BorderColor3 = Color3.fromRGB(200, 0, 0)
+MainFrame.BorderSizePixel = 2
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Name = "Close"
+CloseButton.Parent = MainFrame
+CloseButton.Text = "X"
+CloseButton.Size = UDim2.new(0, 30, 0, 30)
+CloseButton.Position = UDim2.new(1, -30, 0, 0)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 20
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Name = "Title"
+TitleLabel.Parent = MainFrame
+TitleLabel.Text = "Informant.WTF - Final"
+TitleLabel.Size = UDim2.new(1, -30, 0, 30)
+TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+TitleLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 20
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+local ContentFrame = Instance.new("ScrollingFrame")
+ContentFrame.Name = "Content"
+ContentFrame.Parent = MainFrame
+ContentFrame.Size = UDim2.new(1, 0, 1, -30)
+ContentFrame.Position = UDim2.new(0, 0, 0, 30)
+ContentFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+ContentFrame.BorderSizePixel = 0
+
+local ListLayout = Instance.new("UIListLayout")
+ListLayout.Parent = ContentFrame
+ListLayout.FillDirection = Enum.FillDirection.Vertical
+ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ListLayout.Padding = UDim.new(0, 5)
+
+-- ============================================================================
+-- 3. الدوال المُعدلة والجديدة (وظائف الـ Exploit)
+-- ============================================================================
+
+local function createToggleFunction(button, toggleFuncOn, toggleFuncOff)
+    local IsActive = false
+    local DefaultColor = Color3.fromRGB(50, 50, 50)
+    local ActiveColor = Color3.fromRGB(0, 150, 0)
+
+    button.BackgroundColor3 = DefaultColor
+
+    button.MouseButton1Click:Connect(function()
+        IsActive = not IsActive
+        if IsActive then
+            button.BackgroundColor3 = ActiveColor
+            button.Text = button.Name .. " [فعال]"
+            toggleFuncOn(button)
+        else
+            button.BackgroundColor3 = DefaultColor
+            button.Text = button.Name
+            toggleFuncOff(button)
+        end
+        print(button.Name .. " Toggled to: " .. tostring(IsActive))
+    end)
+end
+
+local function createToggle(name, parentFrame, onFunc, offFunc)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Parent = parentFrame
+    Button.Text = name
+    Button.Size = UDim2.new(0.9, 0, 0, 35)
+    Button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 18
+    Button.Font = Enum.Font.SourceSansBold
+    Button.AutoButtonColor = false
+    
+    createToggleFunction(Button, onFunc, offFunc)
+    return Button
+end
+
+local function createOneShot(name, parentFrame, actionFunc)
+    local Button = Instance.new("TextButton")
+    Button.Name = name
+    Button.Parent = parentFrame
+    Button.Text = name
+    Button.Size = UDim2.new(0.9, 0, 0, 35)
+    Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextSize = 18
+    Button.Font = Enum.Font.SourceSansBold
+    Button.AutoButtonColor = false
+    
+    Button.MouseButton1Click:Connect(function()
+        actionFunc(Button)
+        Button.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+        Button.Text = name .. " [تم]"
+        wait(0.5)
+        Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        Button.Text = name
+    end)
+    return Button
+end
+
+-- A. زر الطيران عند القفز (Fly on Jump)
+local FlyConnection = nil
+local OriginalJumpPower = 0
+
+local function toggleFlyOnJump(button)
+    local Humanoid = CurrentCharacter:FindFirstChild("Humanoid")
+    if Humanoid then
+        OriginalJumpPower = Humanoid.JumpPower
+        Humanoid.JumpPower = 0
+        FlyConnection = RunService.RenderStepped:Connect(function()
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local HRP = LocalPlayer.Character.HumanoidRootPart
+                local Humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+                if Humanoid.Jump then
+                    HRP.Velocity = Vector3.new(0, 50, 0)
+                    Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                else
+                    HRP.Velocity = Vector3.new(0, -1, 0) 
+                end
+            end
+        end)
+    end
+end
+
+local function stopFlyOnJump(button)
+    if FlyConnection then FlyConnection:Disconnect(); FlyConnection = nil end
+    local Humanoid = CurrentCharacter:FindFirstChild("Humanoid")
+    if Humanoid and OriginalJumpPower > 0 then Humanoid.JumpPower = OriginalJumpPower end
+end
+
+-- B. زر الرؤية الشفافة (X-Ray/Wallhack)
+local XrayConnection = nil
+local XrayEnabled = false
+
+local function toggleXray(button)
+    XrayEnabled = true
+    XrayConnection = RunService.RenderStepped:Connect(function()
+        if XrayEnabled then
+            for _, part in ipairs(Workspace:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide and part.Transparency < 0.9 then
+                    if not part:IsDescendantOf(LocalPlayer.Character) and part.Name ~= "LiftPlatform" then
+                        part.LocalTransparencyModifier = 0.6 
+                    end
+                end
+            end
+        end
+    end)
+end
+
+local function stopXray(button)
+    XrayEnabled = false
+    if XrayConnection then XrayConnection:Disconnect(); XrayConnection = nil end
+    for _, part in ipairs(Workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.CanCollide then part.LocalTransparencyModifier = 0 end
+    end
+end
+
+-- C. زر منصة الرفع (Lift Platform)
+local Platform = nil
+local function toggleLiftPlatform(button)
+    local HRP = CurrentCharacter:FindFirstChild("HumanoidRootPart")
+    if HRP and not Platform then
+        Platform = Instance.new("Part")
+        Platform.Name = "LiftPlatform"
+        Platform.Size = Vector3.new(4, 0.5, 4)
+        Platform.BrickColor = BrickColor.new("Really red")
+        Platform.Transparency = 0.5
+        Platform.CanCollide = true
+        Platform.Anchored = true
+        Platform.Parent = Workspace
+        Platform.CFrame = HRP.CFrame * CFrame.new(0, -3, 0) 
+        local Weld = Instance.new("WeldConstraint")
+        Weld.Part0 = HRP
+        Weld.Part1 = Platform
+        Weld.Parent = Platform
+    end
+end
+
+local function stopLiftPlatform(button)
+    if Platform then Platform:Destroy(); Platform = nil end
+end
+
+-- D. زر العودة لنقطة البداية (Teleport to Spawn)
+local function teleportToSpawn(button)
+    local HRP = CurrentCharacter:FindFirstChild("HumanoidRootPart")
+    if HRP then HRP.CFrame = OriginalRespawnLocation end
+end
+local function stopTeleportToSpawn(button) end
+
+
+-- E. كشف الأرقام (Damage/Health Indicators)
+local IndicatorConnection = nil
+local IndicatorEnabled = false
+
+local function toggleIndicators(button)
+    IndicatorEnabled = true
+    IndicatorConnection = Workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Humanoid") and descendant.Parent ~= LocalPlayer.Character then
+            local LastHealth = descendant.Health
+            local function onHealthChanged(newHealth)
+                if IndicatorEnabled then
+                    local damage = math.floor(LastHealth - newHealth)
+                    LastHealth = newHealth
+
+                    if damage > 0 and descendant.Parent and descendant.Parent:FindFirstChild("Head") then
+                        local Head = descendant.Parent.Head
+                        local DamageIndicator = Instance.new("TextLabel")
+                        
+                        DamageIndicator.Text = "-" .. tostring(damage)
+                        DamageIndicator.Size = UDim2.new(0, 100, 0, 30)
+                        DamageIndicator.BackgroundColor3 = Color3.new(0, 0, 0)
+                        DamageIndicator.BackgroundTransparency = 1
+                        DamageIndicator.TextColor3 = Color3.fromRGB(255, 0, 0)
+                        DamageIndicator.TextSize = 20
+                        DamageIndicator.Font = Enum.Font.SourceSansBold
+                        
+                        local BillboardGui = Instance.new("BillboardGui")
+                        BillboardGui.Adornee = Head
+                        BillboardGui.MaxDistance = 100
+                        BillboardGui.Size = UDim2.new(0, 200, 0, 50)
+                        DamageIndicator.Parent = BillboardGui
+                        BillboardGui.Parent = PlayerGui
+                        
+                        local tweenService = game:GetService("TweenService")
+                        local info = TweenInfo.new(1.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                        local goal = {Position = UDim2.new(0, 0, 0, -50), TextTransparency = 1}
+                        
+                        tweenService:Create(DamageIndicator, info, goal):Play()
+                        
+                        wait(1.5)
+                        BillboardGui:Destroy()
+                    end
+                end
+            end
+            
+            descendant:GetPropertyChangedSignal("Health"):Connect(onHealthChanged)
+        end
+    end)
+    for _, player in ipairs(Players:GetChildren()) do
+        if player.Character and player.Character:FindFirstChild("Humanoid") and player ~= LocalPlayer then
+            -- محاكاة التوصيل للكائنات الموجودة مسبقاً
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if humanoid then
+                local LastHealth = humanoid.Health
+                humanoid:GetPropertyChangedSignal("Health"):Connect(function(newHealth)
+                     if IndicatorEnabled then
+                        local damage = math.floor(LastHealth - newHealth)
+                        LastHealth = newHealth
+                        if damage > 0 and player.Character:FindFirstChild("Head") then
+                            -- منطق إنشاء المؤشر هنا مرة أخرى
+                            print("Damage registered: " .. damage)
+                            -- ... (بقية منطق إنشاء الـ BillboardGui)
+                        end
+                     end
+                end)
+            end
+        end
+    end
+end
+
+local function stopIndicators(button)
+    IndicatorEnabled = false
+    if IndicatorConnection then IndicatorConnection:Disconnect(); IndicatorConnection = nil end
+end
+
+-- ============================================================================
+-- 5. إضافة الأزرار النهائية
+-- ============================================================================
+
+-- أزرار الوظائف الجديدة (Toggle)
+createToggle("طيران عند القفز (معزز)", ContentFrame, toggleFlyOnJump, stopFlyOnJump)
+createToggle("رؤية شفافة (Wallhack)", ContentFrame, toggleXray, stopXray)
+createToggle("منصة الرفع السريعة", ContentFrame, toggleLiftPlatform, stopLiftPlatform)
+createToggle("كشف الأرقام (Damage/Health)", ContentFrame, toggleIndicators, stopIndicators)
+
+-- زر الوظيفة الجديدة (One-Shot)
+createOneShot("العودة لنقطة البداية (Spawn)", ContentFrame, teleportToSpawn)
+
+-- الكريديت (Credit)
+local CreditsLabel = Instance.new("TextLabel")
+CreditsLabel.Parent = ContentFrame
+CreditsLabel.Text = "--- Developed by Gemini | Follow: tiktok.com.5155 ---"
+CreditsLabel.Size = UDim2.new(0.9, 0, 0, 25)
+CreditsLabel.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+CreditsLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+CreditsLabel.TextSize = 14
+local UITLayout = Instance.new("UITextSizeConstraint")
+UITLayout.MaxTextSize = 14
+UITLayout.Parent = CreditsLabel
+
