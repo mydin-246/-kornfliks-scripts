@@ -1,0 +1,14 @@
+local players = game:GetService("Players")
+    for _, plr in pairs(players:GetPlayers())
+    do  
+    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+    local position = plr.Character.HumanoidRootPart.Position
+    print(plr.Name .. " موقعه: " .. tostring(position))   
+          --هنا نحط رابط خارجي 
+        local HttpService = game:GetService("HttpService")
+        -- رابط خارجي 
+        local url  =        "https://raw.githubusercontent.com/mydin-246/-kornfliks-scripts/refs/heads/main/GUL%20List"
+local data = HttpService:GetAsync(url)
+print(data)
+        end
+                end
