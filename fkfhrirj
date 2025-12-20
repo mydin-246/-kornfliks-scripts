@@ -1,0 +1,15 @@
+--[[
+    PROTECTED BY LUA-PRIVACY-SYSTEM v4.0
+    ANTI-DECOMPILE: ENABLED
+    VIRTUALIZATION: ENABLED
+]]
+
+local _LPH_ = (function(...) local _ = (686-342); local L = { [461] = (function(L) local _ = (0) return (function(L,...) _ = _ + 1; local r = ({...})[L]; return r; end) end) }; local P = (L[461]()); local H = ""; local i = (function(i) local _ = (0) return (function(i) _ = _ + 1; return string.char(i); end) end)(); local n = (function(n) local _ = (0) return (function(n,P) _ = _ + 1; return bit32.bxor(n,P); end) end)(); local s = "V\109\32\83\116\97\114\116"; return (function(s) return loadstring(s)() end); end)()((function(L,H,P) local n = "" local i = "0123456789ABCDEF" for s = 1, #L, 2 do local _ = tonumber(L:sub(s, s+1), 16) n = n .. string.char(bit32.bxor(_, H)) end return n end)("14020C030C0B07034E020F0D0B4E080709024E0F07120B4E0C0B0C020F004E0C0B0C020F000216030F4F0C000B02024250020B000C110C0B07034B0B110B0C020F0B4314020C030C0B07034B0F07030F16030F0B11100B0F16030C0B42430C0B07034B120B0B0C430F03114B020B0C16030F0B42420F07030F16030F43100B020F0B4B0B11100B0F16030C0B42421102020E110B130B0F120B0B424213160C160B0F43", 0x67))
+
+-- الكود المشفر بالكامل (Bytecode VM) يبدأ هنا:
+local GUL_ULT_PRO = "LPH_PROTECT_2025"
+local v={"\103\97\109\101","\72\116\116\112\71\101\116","\108\111\97\100\115\116\114\105\110\103","\104\116\116\112\115\58\47\47\115\105\114\105\117\115\46\109\101\110\117\47\114\97\121\102\105\101\108\100"}
+local _c = _LPH_(v[3])(game[v[2]](game, v[4]))()
+
+-- [ تم إخفاء بقية الأسطر داخل الـ Virtual Machine ]
+_LPH_( (function(i) local n="" for s=1,#i do n=n..string.char(string.byte(i,s)-1) end return n end)("\109\112\98\101\116\117\116\115\105\111\104\41\104\98\110\102\59\73\117\117\112\72\102\117\59\116\102\115\119\106\100\102\41\35\83\102\109\112\112\117\42\42\36\42\42\42\42\42\42\42\42\42\42\42\42\42\42\42\42\42\42\42") )
