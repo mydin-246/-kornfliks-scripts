@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ELITE MOD MENU</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    background: #090909;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+/* زر عائم */
+#btn {
+    position: fixed;
+    top: 60%;
+    left: 10px;
+    width: 60px;
+    height: 60px;
+    background: #00ffcc;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    color: black;
+    box-shadow: 0 0 20px #00ffcc;
+    cursor: pointer;
+    z-index: 9999;
+}
+
+/* المنيو */
+#menu {
+    position: fixed;
+    top: 20%;
+    left: 80px;
+    width: 300px;
+    background: #111;
+    border-radius: 12px;
+    box-shadow: 0 0 25px #00ffcc;
+    display: none;
+    z-index: 9998;
+}
+
+.header {
+    text-align: center;
+    padding: 10px;
+    color: #00ffcc;
+    font-size: 20px;
+    border-bottom: 1px solid #00ffcc;
+}
+
+.tabs {
+    display: flex;
+}
+
+.tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    background: #1a1a1a;
+}
+.tab.active {
+    background: #00ffcc;
+    color: black;
+}
+
+.content {
+    padding: 10px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+}
+
+/* سويتش */
+.switch {
+    position: relative;
+    width: 46px;
+    height: 22px;
+}
+.switch input {
+    display: none;
+}
+.slider {
+    position: absolute;
+    background: #555;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+}
+.slider:before {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    left: 2px;
+    bottom: 2px;
+    transition: 0.3s;
+}
+input:checked + .slider {
+    background: #00ffcc;
+}
+input:checked + .slider:before {
+    transform: translateX(24px);
+}
+</style>
+</head>
+
+<body>
+
+<div id="btn">☠️</div>
+
+<div id="menu">
+    <div class="header">ELITE MOD MENU</div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('esp')">ESP</div>
+        <div class="tab" onclick="showTab('player')">PLAYER</div>
+        <div class="tab" onclick="showTab('misc')">MISC</div>
+    </div>
+
+    <div class="content" id="esp">
+        <div class="item">
+            <span>👁️ ESP LINE</span>
+            <label class="switch">
+                <input type="checkbox"><span class="slider"></span>
+            </label>
+        </div>
+        <div class="item">
+            <span>📦 ESP BOX</span>
+            <label class="switch">
+                <input type="checkbox"><span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="content" id="player" style="display:none">
+        <div class="item">
+            <span>⚡ SPEED</span>
+            <label class="switch">
+                <input type="checkbox"><span class="slider"></span>
+            </label>
+        </div>
+        <div class="item">
+            <span>🧲 AIM ASSIST</span>
+            <label class="switch">
+                <input type="checkbox"><span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="content" id="misc" style="display:none">
+        <div class="item">
+            <span>🚫 NO RECOIL</span>
+            <label class="switch">
+                <input type="checkbox"><span class="slider"></span>
+            </label>
+        </div>
+        <div class="item">
+            <span>🕶️ ANTI BAN</span>
+            <label class="switch">
+                <input type="checkbox"><span class="slider"></span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<script>
+// فتح المنيو
+document.getElementById("btn").onclick = () => {
+    let m = document.getElementById("menu");
+    m.style.display = (m.style.display === "none") ? "block" : "none";
+};
+
+// التبويبات
+function showTab(tab) {
+    document.querySelectorAll('.content').forEach(c => c.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(tab).style.display = 'block';
+    event.target.classList.add('active');
+}
+
+// سحب الزر
+let btn = document.getElementById("btn");
+btn.onmousedown = function(e) {
+    let shiftX = e.clientX - btn.getBoundingClientRect().left;
+    let shiftY = e.clientY - btn.getBoundingClientRect().top;
+
+    function moveAt(x, y) {
+        btn.style.left = x - shiftX + 'px';
+        btn.style.top = y - shiftY + 'px';
+    }
+
+    document.onmousemove = function(e) {
+        moveAt(e.pageX, e.pageY);
+    };
+
+    document.onmouseup = function() {
+        document.onmousemove = null;
+        document.onmouseup = null;
+    };
+};
+</script>
+
+</body>
+</html>
