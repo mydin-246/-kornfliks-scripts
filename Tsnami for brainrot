@@ -1,0 +1,212 @@
+-- Midnight Hub - Escape the Tsunami
+-- تم تعديل السكريبت ليعمل عبر رابط خارجي
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Theme Colors
+local backgroundColor = Color3.fromRGB(40, 30, 60)
+local accentColor = Color3.fromRGB(83, 64, 120)
+
+-- Variables
+local teleportEnabled = false
+local teleportDelay = 1
+local lastTeleport = 0
+local teleportPosition = Vector3.new(-1.948, 100.024, -269.604)
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MidnightHub"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+
+-- Main Frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 280, 0, 120)
+mainFrame.Position = UDim2.new(0.5, -140, 0.1, 0)
+mainFrame.BackgroundColor3 = backgroundColor
+mainFrame.BackgroundTransparency = 0.2
+mainFrame.BorderSizePixel = 2
+mainFrame.BorderColor3 = accentColor
+mainFrame.Parent = screenGui
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- Title
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Size = UDim2.new(1, 0, 0, 25)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Midnight Hub - Escape the Tsunami"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.Parent = mainFrame
+
+-- Farm Button
+local farmButton = Instance.new("TextButton")
+farmButton.Size = UDim2.new(0, 80, 0, 30)
+farmButton.Position = UDim2.new(0, 10, 0, 35)
+farmButton.BackgroundColor3 = accentColor
+farmButton.BackgroundTransparency = 0.2
+farmButton.Text = "Farm: OFF"
+farmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+farmButton.TextScaled = true
+farmButton.Font = Enum.Font.Gotham
+farmButton.BorderSizePixel = 0
+farmButton.Parent = mainFrame
+
+local farmCorner = Instance.new("UICorner")
+farmCorner.CornerRadius = UDim.new(0, 6)
+farmCorner.Parent = farmButton
+
+-- Delay Label
+local delayLabel = Instance.new("TextLabel")
+delayLabel.Size = UDim2.new(0, 60, 0, 20)
+delayLabel.Position = UDim2.new(0, 10, 0, 75)
+delayLabel.BackgroundTransparency = 1
+delayLabel.Text = "Delay (s):"
+delayLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+delayLabel.TextScaled = true
+delayLabel.Font = Enum.Font.Gotham
+delayLabel.Parent = mainFrame
+
+-- Slider
+local sliderBg = Instance.new("Frame")
+sliderBg.Size = UDim2.new(0, 120, 0, 8)
+sliderBg.Position = UDim2.new(0, 80, 0, 81)
+sliderBg.BackgroundColor3 = Color3.fromRGB(60, 50, 80)
+sliderBg.BackgroundTransparency = 0.2
+sliderBg.BorderSizePixel = 0
+sliderBg.Parent = mainFrame
+
+local sliderCorner = Instance.new("UICorner")
+sliderCorner.CornerRadius = UDim.new(0, 4)
+sliderCorner.Parent = sliderBg
+
+local sliderFill = Instance.new("Frame")
+sliderFill.Size = UDim2.new(0.2, 0, 1, 0)
+sliderFill.BackgroundColor3 = accentColor
+sliderFill.BackgroundTransparency = 0.2
+sliderFill.BorderSizePixel = 0
+sliderFill.Parent = sliderBg
+
+local sliderFillCorner = Instance.new("UICorner")
+sliderFillCorner.CornerRadius = UDim.new(0, 4)
+sliderFillCorner.Parent = sliderFill
+
+-- Delay TextBox
+local delayValue = Instance.new("TextBox")
+delayValue.Size = UDim2.new(0, 40, 0, 20)
+delayValue.Position = UDim2.new(0, 210, 0, 75)
+delayValue.BackgroundColor3 = accentColor
+delayValue.BackgroundTransparency = 0.2
+delayValue.Text = "1.00"
+delayValue.TextColor3 = Color3.fromRGB(255, 255, 255)
+delayValue.TextScaled = true
+delayValue.Font = Enum.Font.Gotham
+delayValue.BorderSizePixel = 0
+delayValue.Parent = mainFrame
+
+local delayCorner = Instance.new("UICorner")
+delayCorner.CornerRadius = UDim.new(0, 4)
+delayCorner.Parent = delayValue
+
+-- Functions
+local function teleportPlayer()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(teleportPosition)
+    end
+end
+
+local function updateSlider(value)
+    local percentage = (value - 0.01) / (5 - 0.01)
+    sliderFill.Size = UDim2.new(percentage, 0, 1, 0)
+    delayValue.Text = string.format("%.2f", value)
+    teleportDelay = value
+end
+
+local function toggleFarm()
+    teleportEnabled = not teleportEnabled
+    if teleportEnabled then
+        farmButton.Text = "Farm: ON"
+        farmButton.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    else
+        farmButton.Text = "Farm: OFF"
+        farmButton.BackgroundColor3 = accentColor
+    end
+end
+
+farmButton.MouseButton1Click:Connect(toggleFarm)
+
+-- Slider drag
+local dragging = false
+sliderBg.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mousePos = UserInputService:GetMouseLocation()
+        local sliderPos = sliderBg.AbsolutePosition
+        local sliderSize = sliderBg.AbsoluteSize
+        local relativeX = math.clamp((mousePos.X - sliderPos.X) / sliderSize.X, 0, 1)
+        updateSlider(0.01 + relativeX * (5 - 0.01))
+    end
+end)
+
+-- TextBox input
+delayValue.FocusLost:Connect(function()
+    local newValue = tonumber(delayValue.Text)
+    if newValue then
+        updateSlider(math.clamp(newValue, 0.01, 5))
+    else
+        delayValue.Text = string.format("%.2f", teleportDelay)
+    end
+end)
+
+-- Main loop
+RunService.Heartbeat:Connect(function()
+    if teleportEnabled and tick() - lastTeleport >= teleportDelay then
+        teleportPlayer()
+        lastTeleport = tick()
+    end
+end)
+
+-- Draggable GUI
+local draggingGui = false
+local dragStart, startPos = nil, nil
+mainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingGui = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if draggingGui and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingGui = false
+    end
+end)
+
+print("Midnight Hub loaded successfully via external script!")
