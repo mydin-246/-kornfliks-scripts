@@ -1,0 +1,200 @@
+-- ==========================================
+--              GUL ADVANCED GUI
+-- ==========================================
+local GUL = {}
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Helper functions
+local function new(parent, type_, props)
+    local obj = Instance.new(type_)
+    for i,v in pairs(props or {}) do
+        obj[i] = v
+    end
+    obj.Parent = parent
+    return obj
+end
+
+-- Create Main Window
+function GUL:CreateWindow(title)
+    local selfObj = {}
+    
+    -- Main GUI
+    local gui = new(player:WaitForChild("PlayerGui"), "ScreenGui", {Name="GUL_GUI"})
+    local main = new(gui, "Frame", {
+        Size = UDim2.fromOffset(600,400),
+        Position = UDim2.fromScale(0.5,0.5),
+        AnchorPoint = Vector2.new(0.5,0.5),
+        BackgroundColor3 = Color3.fromRGB(20,20,20),
+        BorderSizePixel = 0
+    })
+    new(main, "UICorner", {CornerRadius=UDim.new(0,12)})
+
+    -- Title
+    new(main, "TextLabel", {
+        Size = UDim2.new(1,0,0,40),
+        BackgroundTransparency = 1,
+        Text = title,
+        TextColor3 = Color3.fromRGB(255,255,255),
+        Font = Enum.Font.GothamBold,
+        TextSize = 22
+    })
+
+    -- Tab Buttons Holder
+    local tabHolder = new(main, "Frame", {
+        Size = UDim2.new(0,140,1,-40),
+        Position = UDim2.new(0,0,0,40),
+        BackgroundColor3 = Color3.fromRGB(30,30,30)
+    })
+    new(tabHolder, "UICorner", {CornerRadius=UDim.new(0,10)})
+
+    -- Pages Holder
+    local pages = new(main, "Frame", {
+        Size = UDim2.new(1,-140,1,-40),
+        Position = UDim2.new(0,140,0,40),
+        BackgroundTransparency = 1
+    })
+
+    local tabs = {}
+
+    function selfObj:CreateTab(name)
+        local tabObj = {}
+
+        -- Tab Button
+        local tabBtn = new(tabHolder, "TextButton", {
+            Size = UDim2.new(1,0,0,40),
+            Text = name,
+            BackgroundColor3 = Color3.fromRGB(40,40,40),
+            TextColor3 = Color3.new(1,1,1),
+            Font = Enum.Font.Gotham,
+            TextSize = 16
+        })
+
+        -- Tab Page
+        local page = new(pages, "ScrollingFrame", {
+            Size = UDim2.new(1,0,1,0),
+            CanvasSize = UDim2.new(0,0,0,0),
+            ScrollBarThickness = 6,
+            BackgroundTransparency = 1,
+            Visible = false
+        })
+        local layout = new(page, "UIListLayout", {Padding = UDim.new(0,6)})
+        layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            page.CanvasSize = UDim2.new(0,0,0,layout.AbsoluteContentSize.Y + 10)
+        end)
+
+        tabBtn.MouseButton1Click:Connect(function()
+            for _,p in pairs(pages:GetChildren()) do
+                if p:IsA("ScrollingFrame") then
+                    p.Visible = false
+                end
+            end
+            page.Visible = true
+        end)
+
+        -- Elements
+        function tabObj:CreateButton(text, callback)
+            local btn = new(page, "TextButton", {
+                Size = UDim2.new(1,-10,0,35),
+                Text = text,
+                BackgroundColor3 = Color3.fromRGB(55,55,55),
+                TextColor3 = Color3.new(1,1,1),
+                Font = Enum.Font.Gotham,
+                TextSize = 15
+            })
+            btn.MouseButton1Click:Connect(callback)
+        end
+
+        function tabObj:CreateToggle(text, default, callback)
+            local state = default
+            local btn = new(page, "TextButton", {
+                Size = UDim2.new(1,-10,0,35),
+                BackgroundColor3 = Color3.fromRGB(55,55,55),
+                TextColor3 = Color3.new(1,1,1),
+                Font = Enum.Font.Gotham,
+                TextSize = 15,
+                Text = text..": "..(state and "ON" or "OFF")
+            })
+            btn.MouseButton1Click:Connect(function()
+                state = not state
+                btn.Text = text..": "..(state and "ON" or "OFF")
+                callback(state)
+            end)
+        end
+
+        function tabObj:CreateSlider(text, min,max,step,default,callback)
+            local frame = new(page, "Frame", {Size=UDim2.new(1,-10,0,50), BackgroundTransparency=1})
+            local label = new(frame, "TextLabel", {
+                Size=UDim2.new(1,0,0,20),
+                BackgroundTransparency=1,
+                Text=text..": "..default,
+                TextColor3=Color3.new(1,1,1),
+                Font=Enum.Font.Gotham,
+                TextSize=15
+            })
+            local slider = new(frame, "Frame", {
+                Size=UDim2.new(1,0,0,20),
+                Position=UDim2.new(0,0,0,25),
+                BackgroundColor3=Color3.fromRGB(55,55,55)
+            })
+            new(slider,"UICorner",{CornerRadius=UDim.new(0,6)})
+            local knob = new(slider,"Frame",{
+                Size=UDim2.new(default/(max-min),0,1,0),
+                BackgroundColor3=Color3.fromRGB(200,200,200)
+            })
+            new(knob,"UICorner",{CornerRadius=UDim.new(0,6)})
+
+            local dragging = false
+            knob.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = true
+                end
+            end)
+            knob.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging = false
+                end
+            end)
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    local x = math.clamp(input.Position.X - slider.AbsolutePosition.X,0,slider.AbsoluteSize.X)
+                    knob.Size = UDim2.new(x/slider.AbsoluteSize.X,0,1,0)
+                    local value = math.floor(min + ((x/slider.AbsoluteSize.X)*(max-min))/step+0.5)*step
+                    label.Text = text..": "..value
+                    callback(value)
+                end
+            end)
+        end
+
+        function tabObj:CreateDropdown(text, options, default, callback)
+            local state = false
+            local current = default or options[1]
+            local frame = new(page, "Frame", {Size=UDim2.new(1,-10,0,35), BackgroundColor3=Color3.fromRGB(55,55,55)})
+            new(frame,"UICorner",{CornerRadius=UDim.new(0,6)})
+            local label = new(frame,"TextLabel",{Size=UDim2.new(1,0,1,0), BackgroundTransparency=1, Text=text..": "..current, TextColor3=Color3.new(1,1,1), Font=Enum.Font.Gotham, TextSize=15})
+            frame.MouseButton1Click:Connect(function()
+                state = not state
+                if state then
+                    local dropFrame = new(frame, "Frame", {Size=UDim2.new(1,0,0,#options*30), Position=UDim2.new(0,0,1,0), BackgroundColor3=Color3.fromRGB(45,45,45)})
+                    new(dropFrame,"UICorner",{CornerRadius=UDim.new(0,6)})
+                    for i,opt in pairs(options) do
+                        local optBtn = new(dropFrame,"TextButton",{Size=UDim2.new(1,0,0,30), Position=UDim2.new(0,0,0,(i-1)*30), Text=opt, BackgroundColor3=Color3.fromRGB(60,60,60), TextColor3=Color3.new(1,1,1), Font=Enum.Font.Gotham, TextSize=14})
+                        optBtn.MouseButton1Click:Connect(function()
+                            current = opt
+                            label.Text = text..": "..current
+                            callback(current)
+                            dropFrame:Destroy()
+                            state = false
+                        end)
+                    end
+                end
+            end)
+        end
+
+        return tabObj
+    end
+
+    return selfObj
+end
+
+return GUL
