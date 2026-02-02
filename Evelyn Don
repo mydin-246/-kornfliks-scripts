@@ -1,0 +1,188 @@
+-- [[ ANIME UI MENU - DELTA FRIENDLY ]] --
+local lp = game:GetService("Players").LocalPlayer
+local pgui = lp:WaitForChild("PlayerGui")
+
+-- حذف أي UI قديم لتجنب التعارض
+if pgui:FindFirstChild("AnimeMenu") then pgui.AnimeMenu:Destroy() end
+
+local sg = Instance.new("ScreenGui", pgui)
+sg.Name = "AnimeMenu"
+sg.IgnoreGuiInset = true
+sg.ResetOnSpawn = false
+
+-- 1. الخلفية المتحركة (Anime Animated Background)
+local Background = Instance.new("ImageLabel", sg)
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.BackgroundTransparency = 1
+Background.Image = "rbxassetid://6253303681" -- مثال: صورة خلفية أنمي (يمكنك تغييرها)
+Background.ZIndex = 0
+
+-- تأثير حركة خفيف للخلفية
+spawn(function()
+    local xOffset = 0
+    while task.wait(0.1) do
+        xOffset = xOffset + 0.001
+        Background.ImageRectOffset = Vector2.new(xOffset * 100, 0)
+        Background.ImageRectSize = Vector2.new(100, 100)
+    end
+end)
+
+-- 2. الزر الرئيسي "X" لإظهار/إخفاء القائمة
+local ToggleButton = Instance.new("TextButton", sg)
+ToggleButton.Size = UDim2.new(0, 50, 0, 50)
+ToggleButton.Position = UDim2.new(0.01, 0, 0.05, 0)
+ToggleButton.Text = "X"
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.TextColor3 = Color3.new(1,1,1)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+ToggleButton.TextScaled = true
+ToggleButton.ZIndex = 2
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(0.5,0) -- زر دائري
+
+local MenuVisible = false
+ToggleButton.MouseButton1Click:Connect(function()
+    MenuVisible = not MenuVisible
+    MainFrame.Visible = MenuVisible
+    ToggleButton.Text = MenuVisible and "O" or "X" -- يتغير شكل الزر
+end)
+
+-- 3. القائمة الرئيسية (Main Menu Frame) - تبدأ مخفية
+local MainFrame = Instance.new("Frame", sg)
+MainFrame.Size = UDim2.new(0, 300, 0, 450)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -225) -- تتوسط الشاشة
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.BackgroundTransparency = 0.2 -- شفافة قليلاً
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = false -- تبدأ مخفية
+MainFrame.ZIndex = 1
+
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 10)
+
+local Title = Instance.new("TextLabel", MainFrame)
+Title.Size = UDim2.new(1, 0, 0.1, 0)
+Title.Text = "ANIME MENU"
+Title.Font = Enum.Font.GothamBlack
+Title.TextColor3 = Color3.new(1,1,1)
+Title.BackgroundTransparency = 1
+Title.TextScaled = true
+
+-- 4. إطار الأدوات (Tools/Windows Frame)
+local ToolsFrame = Instance.new("Frame", MainFrame)
+ToolsFrame.Size = UDim2.new(0.95, 0, 0.8, 0)
+ToolsFrame.Position = UDim2.new(0.025, 0, 0.15, 0)
+ToolsFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ToolsFrame.BackgroundTransparency = 0.3
+ToolsFrame.BorderSizePixel = 0
+Instance.new("UICorner", ToolsFrame).CornerRadius = UDim.new(0, 8)
+
+-- 5. نافذة أدوات السكربت (Script Tools Window)
+local ScriptToolsWindow = Instance.new("ScrollingFrame", ToolsFrame)
+ScriptToolsWindow.Size = UDim2.new(1, 0, 1, 0)
+ScriptToolsWindow.BackgroundTransparency = 1
+ScriptToolsWindow.CanvasSize = UDim2.new(0,0,2,0) -- قابلة للتمرير أكثر
+ScriptToolsWindow.ScrollBarThickness = 6
+ScriptToolsWindow.Active = true -- مهم لتحريك السكرول
+ScriptToolsWindow.Visible = true
+
+local ListLayout = Instance.new("UIListLayout", ScriptToolsWindow)
+ListLayout.FillDirection = Enum.FillDirection.Vertical
+ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ListLayout.Padding = UDim.new(0, 10)
+
+-- وظيفة إضافة زر (Button) للنافذة
+local function AddToolButton(parentFrame, name, func)
+    local btn = Instance.new("TextButton", parentFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 50)
+    btn.Text = name
+    btn.Font = Enum.Font.SourceSansBold
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
+    btn.BackgroundTransparency = 0.1
+    btn.TextScaled = true
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+    btn.MouseButton1Click:Connect(func)
+    return btn
+end
+
+-- 6. الأدوات التي طلبتها (داخل نافذة الأدوات)
+AddToolButton(ScriptToolsWindow, "🔥 عالم النار والأنمي", function()
+    local sky = Instance.new("Sky", game.Lighting)
+    sky.SkyboxBk = "rbxassetid://1007842503"
+    sky.SkyboxDn = "rbxassetid://1007842503"
+    sky.SkyboxFt = "rbxassetid://1007842503"
+    sky.SkyboxLf = "rbxassetid://1007842503"
+    sky.SkyboxRt = "rbxassetid://1007842503"
+    sky.SkyboxUp = "rbxassetid://1007842503"
+    for _, part in pairs(workspace:GetDescendants()) do
+        if part:IsA("BasePart") and part.Name == "Baseplate" then
+            part.Color = Color3.fromRGB(255, 50, 0)
+            part.Material = Enum.Material.Neon
+            local fire = Instance.new("Fire", part)
+            fire.Size = 50
+        end
+    end
+end)
+
+AddToolButton(ScriptToolsWindow, "📦 سجن الكل (قفث)", function()
+    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= lp and p.Character then
+            local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local box = Instance.new("Part", workspace)
+                box.Size = Vector3.new(7, 7, 7)
+                box.Color = Color3.new(0, 0, 0)
+                box.CFrame = hrp.CFrame
+                box.Anchored = true
+                p.Character:BreakJoints()
+            end
+        end
+    end
+end)
+
+AddToolButton(ScriptToolsWindow, "👑 أنا العملاق الطائر", function()
+    local char = lp.Character or lp.CharacterAdded:Wait()
+    char.Archivable = true
+    local clone = char:Clone()
+    clone.Parent = workspace
+    clone:SetPrimaryPartCFrame(CFrame.new(0, 250, 0))
+    clone:ScaleTo(20)
+    for _, v in pairs(clone:GetDescendants()) do if v:IsA("BasePart") then v.Anchored = true end end
+end)
+
+AddToolButton(ScriptToolsWindow, "💀 إبادة السيرفر", function()
+    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= lp and p.Character then p.Character:BreakJoints() end
+    end
+end)
+
+-- 7. سيف الشيطان (Devil Sword) - يظهر فوراً
+local tool = Instance.new("Tool")
+tool.Name = "Devil Sword"
+local handle = Instance.new("Part", tool)
+handle.Name = "Handle"
+local mesh = Instance.new("SpecialMesh", handle)
+mesh.MeshId = "rbxassetid://13078237623"
+mesh.Scale = Vector3.new(2.5, 2.5, 2.5)
+tool.Parent = lp.Backpack
+
+-- أنيميشن سحب السيف (تأثير كاميرا)
+tool.Equipped:Connect(function()
+    local cam = workspace.CurrentCamera
+    for i = 1, 15 do
+        cam.CFrame = cam.CFrame * CFrame.Angles(math.random(-5,5)/100, math.random(-5,5)/100, 0)
+        task.wait(0.01)
+    end
+end)
+
+tool.Activated:Connect(function()
+    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= lp and p.Character then
+            local dist = (p.Character:FindFirstChild("HumanoidRootPart").Position - lp.Character:FindFirstChild("HumanoidRootPart").Position).Magnitude
+            if dist < 15 then p.Character:BreakJoints() end
+        end
+    end
+end)
+
+print("ANIME UI Loaded! Press 'X' to toggle menu.")
+
